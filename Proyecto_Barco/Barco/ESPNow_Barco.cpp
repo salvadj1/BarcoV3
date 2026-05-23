@@ -22,17 +22,21 @@ void onComandoRecibido(const uint8_t* mac, const uint8_t* data, int len) {
     switch (cmd.tipo) {
 
     case CMD_JOYSTICK:
-        // Aceptar control manual en IDLE y en ARRIVED
+        // rumbo: -1=izquierda, 0=centro, +1=derecha
         if (navState == IDLE || navState == ARRIVED) {
             if (navState == ARRIVED) {
                 navState     = IDLE;
                 motorRunning = false;
             }
-            joySteer     = cmd.rumbo;
+            joySteer     = cmd.rumbo;   // -1, 0 o +1
             modoManual   = true;
             setMotorPct(cmd.throttle);
             motorRunning = (cmd.throttle > 0);
         }
+        break;
+
+    case CMD_CENTER_TIMON:
+        resetTimonReferencia();
         break;
 
     case CMD_GUARDAR_PUNTO:
@@ -72,8 +76,6 @@ void onComandoRecibido(const uint8_t* mac, const uint8_t* data, int len) {
         modoManual   = false;
         joySteer     = 0;
         setMotorPct(0);
-        // El timon vuelve al centro en el proximo ciclo de updateTimon()
-        // porque motorRunning=false -> moverHacia(trimSteps)
         break;
 
     case CMD_THROTTLE:
@@ -141,11 +143,11 @@ void EnviarTelemetria() {
     t.fix    = fix;
     t.lat    = (float)smoothLat;
     t.lng    = (float)smoothLng;
-    t.speed  = gps.speed.isValid()      ? (float)gps.speed.kmph()     : 0;
-    t.course = courseValid              ? (float)currentCourse         : 0;
-    t.alt    = gps.altitude.isValid()   ? (float)gps.altitude.meters() : 0;
-    t.sats   = gps.satellites.isValid() ? (uint8_t)gps.satellites.value() : 0;
-    t.hdop   = gps.hdop.isValid()       ? (float)gps.hdop.hdop()      : 99.9f;
+    t.speed  = gps.speed.isValid()      ? (float)gps.speed.kmph()      : 0;
+    t.course = courseValid              ? (float)currentCourse          : 0;
+    t.alt    = gps.altitude.isValid()   ? (float)gps.altitude.meters()  : 0;
+    t.sats   = gps.satellites.isValid() ? (uint8_t)gps.satellites.value(): 0;
+    t.hdop   = gps.hdop.isValid()       ? (float)gps.hdop.hdop()        : 99.9f;
 
     t.navState       = (uint8_t)navState;
     t.cebo1Abierto   = cebo1Abierto;
@@ -171,22 +173,23 @@ void EnviarTelemetria() {
         t.timeS = gps.time.second();
     }
 
-    t.throttleMax    = throttleMax;
-    t.throttleMin    = throttleMin;
-    t.motorRunning   = motorRunning;
-    t.motorPctActual = motorPctActual;
-    t.timonAngle     = timonAngleDeg();   // grados desde encoder, no desde servo
-    t.invertirTimon  = invertirTimon;
-    t.trimTimon      = (int)(trimTimon * 10.0f);
-    t.targetBearing  = (float)targetBearing;
-    t.distProximidad = distProximidad;
-    t.pausaMotor     = pausaMotor;
-    t.calibProgress  = gy273CalibProgress;
-    t.calibOK        = gy273CalibOK;
-    t.calibOffsetX   = gy273OffsetX;
-    t.calibOffsetY   = gy273OffsetY;
-    t.calibScaleX    = gy273ScaleX;
-    t.calibScaleY    = gy273ScaleY;
+    t.throttleMax       = throttleMax;
+    t.throttleMin       = throttleMin;
+    t.motorRunning      = motorRunning;
+    t.motorPctActual    = motorPctActual;
+    t.timonAngle        = timonAngleDeg();   // grados reales desde encoder
+    t.invertirTimon     = invertirTimon;
+    t.trimTimon         = (int)(trimTimon * 10.0f);
+    t.targetBearing     = (float)targetBearing;
+    t.distProximidad    = distProximidad;
+    t.pausaMotor        = pausaMotor;
+    t.timonReferenciada = timonReferenciada;
+    t.calibProgress     = gy273CalibProgress;
+    t.calibOK           = gy273CalibOK;
+    t.calibOffsetX      = gy273OffsetX;
+    t.calibOffsetY      = gy273OffsetY;
+    t.calibScaleX       = gy273ScaleX;
+    t.calibScaleY       = gy273ScaleY;
 
     esp_now_send(macPlaya, (uint8_t*)&t, sizeof(TelemetriaBarco));
 }

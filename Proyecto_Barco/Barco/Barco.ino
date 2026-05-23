@@ -45,6 +45,8 @@ void setup() {
 }
 
 void loop() {
+    
+
     LoopGPS();
 
     // ADXL345 a 50 Hz — antes del GY273 para que el tilt este actualizado

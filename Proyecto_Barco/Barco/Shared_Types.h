@@ -18,7 +18,7 @@ struct TelemetriaBarco {
     float    hdop;
     bool     fix;
 
-    uint8_t  navState;       // 0=IDLE, 1=GOING_CEBO1, 2=GOING_CEBO2, 3=RETURNING, 4=ARRIVED
+    uint8_t  navState;
 
     bool     cebo1Abierto;
     bool     cebo2Abierto;
@@ -48,19 +48,21 @@ struct TelemetriaBarco {
     uint8_t  timeS;
 
     int      throttleMax;
-    int      throttleMin;   // velocidad minima freno progresivo (0-50)
+    int      throttleMin;
     bool     motorRunning;
-    int      motorPctActual;  // velocidad real actual del motor 0-100%
-    int      timonAngle;
-    bool     invertirTimon;  // estado actual del eje del timon
-    int      trimTimon;      // trim en decimas de grado (-150..150 = -15.0..+15.0)
-    float    targetBearing;  // rumbo hacia el destino actual (0-360)
-    int      distProximidad; // metros de proximidad para llegar (1-30)
-    int      pausaMotor;     // segundos de pausa al llegar a cada punto (0-30)
+    int      motorPctActual;
+    int      timonAngle;         // grados reales desde encoder (negativo=izq, positivo=der)
+    bool     invertirTimon;
+    int      trimTimon;          // decimas de grado (-150..150)
+    float    targetBearing;
+    int      distProximidad;
+    int      pausaMotor;
+
+    bool     timonReferenciada;  // true si el encoder tiene referencia valida
 
     // GY273 calibracion
-    uint8_t  calibProgress;  // 0-100 % durante calibracion, 255=idle
-    bool     calibOK;        // true si hay calibracion guardada
+    uint8_t  calibProgress;
+    bool     calibOK;
     float    calibOffsetX;
     float    calibOffsetY;
     float    calibScaleX;
@@ -77,41 +79,42 @@ struct TelemetriaBarco {
 #define CMD_TRIM          6
 #define CMD_INVERT_TIMON  7
 #define CMD_CALIB_GY273   8
-#define CMD_PROXIMIDAD    9   // radio de llegada en metros (1-30)
-#define CMD_PAUSA        10   // segundos de pausa en cada punto (0-30)
-#define CMD_THROTTLE_MIN 11   // velocidad minima durante freno progresivo (0-50)
+#define CMD_PROXIMIDAD    9
+#define CMD_PAUSA        10
+#define CMD_THROTTLE_MIN 11
+#define CMD_CENTER_TIMON 12   // resetea encSteps=0, fija referencia de centro
 
 struct ComandoPlaya {
     uint8_t tipo;
 
     // CMD_JOYSTICK
-    int     rumbo;           // -100 a 100 (izq/der)
+    int     rumbo;           // -1=izquierda, 0=centro, +1=derecha
     int     throttle;        // 0 a 100
 
     // CMD_GUARDAR_PUNTO
-    uint8_t punto;           // 0=home, 1=cebo1, 2=cebo2
+    uint8_t punto;
 
     // CMD_CEBO
-    uint8_t numeroCebo;      // 1 o 2
+    uint8_t numeroCebo;
     bool    abrirCebo;
 
     // CMD_THROTTLE
     int     nuevoThrottle;
 
     // CMD_TRIM
-    int     trimTimon;       // decimas de grado (-150..150)
+    int     trimTimon;
 
     // CMD_INVERT_TIMON
-    bool    invertirTimon;   // true=invertir eje, false=normal
+    bool    invertirTimon;
 
     // CMD_PROXIMIDAD
-    int     distProximidad;  // metros (1-30)
+    int     distProximidad;
 
     // CMD_PAUSA
-    int     pausaMotor;      // segundos (0-30)
+    int     pausaMotor;
 
     // CMD_THROTTLE_MIN
-    int     nuevoThrottleMin; // velocidad minima freno progresivo (0-50)
+    int     nuevoThrottleMin;
 };
 
 #endif
