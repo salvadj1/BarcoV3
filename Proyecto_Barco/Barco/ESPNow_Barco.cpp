@@ -23,12 +23,22 @@ void onComandoRecibido(const uint8_t* mac, const uint8_t* data, int len) {
 
     case CMD_JOYSTICK:
         // rumbo: -1=izquierda, 0=centro, +1=derecha
+        // rumbo=0 (soltar boton) se procesa SIEMPRE para garantizar vuelta al centro
+        if (cmd.rumbo == 0) {
+            updateJoyTimestamp();
+            joySteer     = 0;
+            modoManual   = true;
+            setMotorPct(cmd.throttle);
+            motorRunning = (cmd.throttle > 0);
+            break;
+        }
         if (navState == IDLE || navState == ARRIVED) {
             if (navState == ARRIVED) {
                 navState     = IDLE;
                 motorRunning = false;
             }
-            joySteer     = cmd.rumbo;   // -1, 0 o +1
+            updateJoyTimestamp();
+            joySteer     = cmd.rumbo;
             modoManual   = true;
             setMotorPct(cmd.throttle);
             motorRunning = (cmd.throttle > 0);

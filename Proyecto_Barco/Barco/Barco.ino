@@ -62,7 +62,9 @@ void loop() {
     // Timon a 50 Hz — bucle proporcional sobre encoder
     if (timer_log_Procesarservos.listo(TIMON_INTERVAL)) {
         updateTimon();
+         Serial.printf("[ENC] steps=%d deg=%d\n", currentTimonSteps, timonAngleDeg());
     }
+
 
     // Log GY273 cada 1 segundo
     if (timer_log_GY273.listo(1000)) {

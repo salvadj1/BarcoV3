@@ -19,14 +19,15 @@
 // ============================================================
 static volatile int32_t encSteps = 0;
 
+static volatile uint8_t  encLast = 0;
+static volatile int8_t   encAcc  = 0;
+
 static const int8_t ENC_TABLE[16] = {
   0, -1, 1, 0,
   1, 0, 0, -1,
   -1, 0, 0, 1,
   0, 1, -1, 0
 };
-static volatile uint8_t encLast = 0;
-static volatile int8_t  encAcc  = 0;
 
 static void IRAM_ATTR isrEncoder() {
     uint8_t clk = digitalRead(TIMON_ENC_CLK);
@@ -64,6 +65,17 @@ int    timonTargetSteps  = 0;
 bool   timonReferenciada = false;
 
 // ============================================================
+//  WATCHDOG JOYSTICK
+//  Si no llega CMD_JOYSTICK en TIMON_JOY_TIMEOUT ms -> joySteer=0
+// ============================================================
+static unsigned long lastJoyMs = 0;
+#define TIMON_JOY_TIMEOUT  600   // ms sin comando -> parar (mayor que intervalo web 100ms)
+
+void updateJoyTimestamp() {
+    lastJoyMs = millis();
+}
+
+// ============================================================
 //  RESET REFERENCIA (centro fisico)
 // ============================================================
 void resetTimonReferencia() {
@@ -71,6 +83,8 @@ void resetTimonReferencia() {
     encSteps = 0;
     encAcc   = 0;
     interrupts();
+    currentTimonSteps = 0;   // actualizar inmediatamente sin esperar moverHacia
+    timonTargetSteps  = 0;
     timonReferenciada = true;
     Serial.println("Timon: referencia reseteada - centro=0");
 }
@@ -105,20 +119,21 @@ static void frenarTimon() {
 //  BUCLE PROPORCIONAL DE POSICION
 // ============================================================
 static void moverHacia(int targetSteps) {
-    currentTimonSteps = (int)readEnc();
+    // currentTimonSteps ya actualizado en updateTimon()
+
+    // Seguridad absoluta: si supera el limite fisico, parar motor inmediatamente
+    if (currentTimonSteps >  TIMON_STEPS_FULL) { frenarTimon(); return; }
+    if (currentTimonSteps < -TIMON_STEPS_FULL) { frenarTimon(); return; }
 
     targetSteps = constrain(targetSteps, -TIMON_STEPS_FULL, TIMON_STEPS_FULL);
     timonTargetSteps = targetSteps;
 
     int error = targetSteps - currentTimonSteps;
 
-    if (currentTimonSteps > TIMON_STEPS_FULL && error > 0) { frenarTimon(); return; }
-    if (currentTimonSteps < -TIMON_STEPS_FULL && error < 0) { frenarTimon(); return; }
     if (abs(error) <= TIMON_DEAD_ZONE) { frenarTimon(); return; }
 
-    int pwm = (int)(TIMON_KP * abs(error));
-    pwm = constrain(pwm, TIMON_PWM_MIN, TIMON_PWM_MAX);
-    motorTimon(error > 0 ? pwm : -pwm);
+    // Maxima velocidad siempre
+    motorTimon(error > 0 ? 255 : -255);
 }
 
 // ============================================================
@@ -187,24 +202,26 @@ void updateTimon() {
         }
     }
 
+    // Actualizar posicion actual del encoder SIEMPRE (para telemetria correcta)
+    currentTimonSteps = (int)readEnc();
+
+    // --- WATCHDOG: sin comando joystick en TIMON_JOY_TIMEOUT ms -> parar ---
+    if (modoManual && (millis() - lastJoyMs > TIMON_JOY_TIMEOUT)) {
+        frenarTimon();
+        return;
+    }
+
     // Trim en pasos
     int trimSteps = (int)(trimTimon * TIMON_PASOS_POR_GRADO);
-
-    // Pasos equivalentes al angulo manual maximo
-    int manualMaxSteps = (int)(TIMON_MANUAL_MAX_DEG * TIMON_PASOS_POR_GRADO);
-    manualMaxSteps = constrain(manualMaxSteps, 1, TIMON_STEPS_MAX);
 
     // ---- MODO MANUAL ----
     if (modoManual) {
         if (joySteer == 0) {
-            // Soltar boton: volver al centro + trim
-            moverHacia(trimSteps);
+            moverHacia(trimSteps);   // volver al centro
         } else if (joySteer > 0) {
-            // Boton derecha: ir al maximo derecha
-            moverHacia(manualMaxSteps + trimSteps);
+            moverHacia(TIMON_STEPS_MAX + trimSteps);
         } else {
-            // Boton izquierda: ir al maximo izquierda
-            moverHacia(-manualMaxSteps + trimSteps);
+            moverHacia(-TIMON_STEPS_MAX + trimSteps);
         }
         return;
     }
@@ -261,12 +278,14 @@ void SetupTimon() {
     // SPIFFS ya montado por Barco.ino
     loadTrim();
 
+    lastJoyMs = millis();   // inicializar watchdog
+
     Serial.println("TimonSistema: OK");
     Serial.printf("  PWMA=GPIO%d  STBY=GPIO%d  AIN1=GPIO%d  AIN2=GPIO%d\n",
                   TIMON_PWMA, TIMON_STBY, TIMON_AIN1, TIMON_AIN2);
     Serial.printf("  ENC_CLK=GPIO%d  ENC_DT=GPIO%d  ENC_SW=GPIO%d\n",
                   TIMON_ENC_CLK, TIMON_ENC_DT, TIMON_ENC_SW);
-    Serial.printf("  Manual max: %.0f grados  Escala: %.1f grados/paso\n",
-                  TIMON_MANUAL_MAX_DEG, TIMON_GRADOS_POR_PASO);
+    Serial.printf("  Manual max: %d pasos = %.0f grados  Escala: %.1f grados/paso\n",
+                  TIMON_STEPS_MAX, TIMON_STEPS_MAX * TIMON_GRADOS_POR_PASO, TIMON_GRADOS_POR_PASO);
     Serial.println("  >> Centra el timon y pulsa SW o CTR en la web para fijar referencia");
 }

@@ -40,23 +40,20 @@
 #define TIMON_ENC_SW   18  // boton SW del encoder - resetea referencia
 
 // ---------- ESCALA GRADOS ----------
-// Tope a tope: 30 pasos = 180 grados fisicos (±90 cada lado)
-// Cada paso = 6 grados
-#define TIMON_GRADOS_POR_PASO   6.0f
+// Tope a tope: 30 pasos = 360 grados fisicos
+// Cada paso = 12 grados
+#define TIMON_GRADOS_POR_PASO   12.0f
 #define TIMON_PASOS_POR_GRADO   (1.0f / TIMON_GRADOS_POR_PASO)
 
 // ---------- LIMITES MECANICOS ----------
-#define TIMON_STEPS_MAX   15   // pasos hasta maximo desvio (90 grados / 6 grados por paso)
-#define TIMON_STEPS_FULL  17   // limite seguridad absoluto
-
-// Angulo maximo en modo manual (grados) - configurable
-#define TIMON_MANUAL_MAX_DEG  60.0f   // maximo al mantener pulsado el boton
+#define TIMON_STEPS_MAX   15   // maximo cada lado (15 * 12 = 180 grados)
+#define TIMON_STEPS_FULL  16   // limite seguridad absoluto — para motor si se supera
 
 // ---------- PARAMETROS DE CONTROL ----------
 #define TIMON_KP         6.5f
 #define TIMON_DEAD_ZONE  1
-#define TIMON_PWM_MIN    60
-#define TIMON_PWM_MAX    220
+#define TIMON_PWM_MIN    255
+#define TIMON_PWM_MAX    255
 
 // ---------- ESTADO EXPORTADO ----------
 extern double targetBearing;
@@ -76,6 +73,7 @@ void saveTrim();
 void loadTrim();
 void saveInvert();
 void resetTimonReferencia();   // pone encSteps=0, llamar cuando timon este centrado
+void updateJoyTimestamp();     // llamar en cada CMD_JOYSTICK recibido
 
 double calcBearing(double lat1, double lng1, double lat2, double lng2);
 
@@ -84,9 +82,10 @@ inline float timonStepsToDeg(int steps) {
     return steps * TIMON_GRADOS_POR_PASO;
 }
 
-// Para telemetria: grados reales desde encoder
+// Para telemetria: grados en formato 0-360 con centro=180
 inline int timonAngleDeg() {
-    return (int)timonStepsToDeg(currentTimonSteps);
+    int deg = (int)timonStepsToDeg(currentTimonSteps);
+    return ((deg + 180) + 360) % 360;   // centro=180, izq<180, der>180
 }
 
 #endif
