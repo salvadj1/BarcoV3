@@ -1,3 +1,6 @@
+#include "HW040Encoder.h"
+#include "TB6612FNG.h"
+
 #include "Utilidades.h"
 #include "GPS_Neo_6M.h"
 #include "ADXL345_Module.h"
@@ -39,13 +42,23 @@ void setup() {
   loadParamsViaje();  // carga distProximidad, pausaMotor y puntos guardados
   SetupADXL345();
   SetupGY273();
+  setupTB6612FNG();
+  setupHW040Encoder();
+
   SetupESPNowBarco();
 
   Serial.println("BARCO listo");
 }
 
 void loop() {
-  LoopGPS();
+
+  //LoopGPS(); //Desde aqui se llama a LoopViajesLogica();
+
+  loopHW040Encoder();
+
+  if (LoopGPS()) {
+    LoopViajesLogica();
+  }
 
   // ADXL345 a 50 Hz — antes del GY273 para que el tilt este actualizado
   if (timer_lectura_ADXL345.listo(ADXL_INTERVAL)) {
@@ -57,22 +70,9 @@ void loop() {
     LoopGY273();
   }
 
-  // Log GY273 cada 1 segundo
-  if (timer_log_GY273.listo(1000)) {
-    Serial.printf("[GY273] heading=%.1f  valid=%s  calibOK=%s  tilt=%s\n",
-                  (float)currentCourse,
-                  courseValid ? "SI" : "NO",
-                  gy273CalibOK ? "SI" : "NO",
-                  adxlOK ? "SI" : "NO");
-  }
-
   // Timon a 50 Hz — bucle proporcional sobre encoder
   if (timer_procesarTimon.listo(TIMON_INTERVAL)) {
     updateTimon();
-  }
-  // Log Timon (grados y encode) cada 1 segundo
-  if (timer_log_Timon.listo(1000)) {
-    Serial.printf("[ENC] steps=%d deg=%d\n", currentTimonSteps, timonAngleDeg());
   }
 
   // Telemetria a 5 Hz

@@ -11,7 +11,7 @@ Timer timer_lectura_ADXL345;
 
 Timer timer_lectura_MPU6050;
 Timer timer_log_MPU6050;
-Timer timer_log_Radio;
+Timer timer_log_HW040Encoder;
 
 Timer timer_telemetria;
 

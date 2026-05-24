@@ -42,6 +42,7 @@ enum EstadoNavegacion {
 };
 
 void SetupGPS();
-void LoopGPS();
+//void LoopGPS();
+bool LoopGPS();
 
 #endif

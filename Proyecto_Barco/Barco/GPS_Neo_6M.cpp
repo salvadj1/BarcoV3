@@ -101,13 +101,24 @@ void SetupGPS() {
 }
 
 // ---------- LOOP ----------
-void LoopGPS() {
+/*void LoopGPS() {
     while (gpsSerial.available()) gps.encode(gpsSerial.read());
 
     if (gps.location.isValid()) {
         updateFilter(gps.location.lat(), gps.location.lng());
         LoopViajesLogica();
     }
+}*/
 
+bool LoopGPS() {
+    while (gpsSerial.available()) {
+        gps.encode(gpsSerial.read());
+    }
 
+    if (gps.location.isValid()) {
+        updateFilter(gps.location.lat(), gps.location.lng());
+        return true;
+    }
+
+    return false;
 }

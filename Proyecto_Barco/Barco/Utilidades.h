@@ -34,7 +34,7 @@ extern Timer timer_lectura_ADXL345;
 
 extern Timer timer_lectura_MPU6050;
 extern Timer timer_log_MPU6050;
-extern Timer timer_log_Radio;
+extern Timer timer_log_HW040Encoder;
 
 extern Timer timer_telemetria;
 // ===== FUNCIONES ==============================================================

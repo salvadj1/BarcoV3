@@ -9,21 +9,21 @@
 #include <ESP32Servo.h>
 
 // ---------- PIN ----------
-#define PIN_ESC   25
+#define PIN_ESC 25
 
 // ---------- LIMITES ESC (microsegundos) ----------
-#define ESC_STOP  1000
-#define ESC_MAX   1900
+#define ESC_STOP 1000
+#define ESC_MAX 1900
 
 // ---------- ESTADO EXPORTADO ----------
-extern int  throttleMax;       // velocidad maxima de crucero (0-100%)
-extern int  throttleMin;       // velocidad minima durante freno progresivo (0-50%), default 6
-extern bool motorRunning;      // true si el motor esta en marcha
-extern int  motorPctActual;    // velocidad real actual del motor 0-100%
+extern int throttleMax;     // velocidad maxima de crucero (0-100%)
+extern int throttleMin;     // velocidad minima durante freno progresivo (0-50%), default 6
+extern bool motorRunning;   // true si el motor esta en marcha
+extern int motorPctActual;  // velocidad real actual del motor 0-100%
 
 // ---------- FUNCIONES ----------
 void SetupESC();
 void setMotorPct(int pct);
-int  pctToUs(int pct);
+int pctToUs(int pct);
 
 #endif
