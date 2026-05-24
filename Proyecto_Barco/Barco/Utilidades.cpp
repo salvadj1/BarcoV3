@@ -2,15 +2,18 @@
 
 #include "Utilidades.h"
 
-Timer timer_log_Servos;
-Timer timer_log_Procesarservos;
-Timer timer_log_Cruceta_ajustefino;
-Timer timer_lectura_MPU6050;
-Timer timer_log_MPU6050;
+Timer timer_log_Timon;
+Timer timer_procesarTimon;
+
 Timer timer_lectura_GY273;
 Timer timer_log_GY273;
 Timer timer_lectura_ADXL345;
+
+Timer timer_lectura_MPU6050;
+Timer timer_log_MPU6050;
 Timer timer_log_Radio;
+
+Timer timer_telemetria;
 
 void SetupUtilidades() {
 	Serial.begin(115200);

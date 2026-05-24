@@ -25,16 +25,18 @@ public:
 	}
 };
 
-extern Timer timer_log_Servos;
-extern Timer timer_log_Procesarservos;
-extern Timer timer_log_Cruceta_ajustefino;
-extern Timer timer_lectura_MPU6050;
-extern Timer timer_log_MPU6050;
+extern Timer timer_log_Timon;
+extern Timer timer_procesarTimon;
+
 extern Timer timer_lectura_GY273;
 extern Timer timer_log_GY273;
 extern Timer timer_lectura_ADXL345;
+
+extern Timer timer_lectura_MPU6050;
+extern Timer timer_log_MPU6050;
 extern Timer timer_log_Radio;
 
+extern Timer timer_telemetria;
 // ===== FUNCIONES ==============================================================
 void SetupUtilidades();
 void parpadearLed(uint8_t pin, uint16_t veces, uint32_t duracionEncendido, uint32_t esperaEntreParpadeos);
