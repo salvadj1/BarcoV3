@@ -109,7 +109,8 @@ void onComandoRecibido(const uint8_t* mac, const uint8_t* data, int len) {
       break;
 
     case CMD_TRIM:
-      trimTimon = constrain(cmd.trimTimon / 10.0f, -15.0f, 15.0f);
+      //trimTimon = constrain(cmd.trimTimon / 10.0f, -15.0f, 15.0f); //15 grados
+      trimTimon = constrain(cmd.trimTimon / 10.0f, -45.0f, 45.0f); //45 grados
       saveTrim();
       break;
 
