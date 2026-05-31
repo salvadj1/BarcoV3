@@ -1,4 +1,4 @@
-#include "HW040Encoder.h"
+#include "PotenciometroB10K.h"
 #include "TB6612FNG.h"
 
 #include "Utilidades.h"
