@@ -11,8 +11,8 @@
 
 // ---------- PARAMETROS DE CONTROL ----------
 #define TIMON_PWM_STOP 0
-#define TIMON_PWM_MIN 100  // mínimo para vencer fricción — ajusta si no llega
-#define TIMON_PWM_MAX 125
+#define TIMON_PWM_MIN 80  // mínimo para vencer fricción — ajusta si no llega
+#define TIMON_PWM_MAX 100 //255 max
 
 // ---------- ESTADO EXPORTADO ----------
 extern double targetBearing;

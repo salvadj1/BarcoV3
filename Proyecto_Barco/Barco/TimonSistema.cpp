@@ -24,7 +24,7 @@ int timonEnGrados = 180;
 int TIMON_OBJETIVO_EN_GRADOS = 180;
 int Timon_ultimo_objetivo = 180;
 
-static const int ZONA_MUERTA = 10;
+static const int ZONA_MUERTA = 4;
 // ============================================================
 //  PERSISTENCIA SPIFFS
 // ============================================================
@@ -35,7 +35,7 @@ void loadTrim() {
   if (SPIFFS.exists(TRIM_FILE)) {
     File f = SPIFFS.open(TRIM_FILE, FILE_READ);
     if (f) {
-      trimTimon = constrain(f.readString().toFloat(), -15.0f, 15.0f);
+      trimTimon = constrain(f.readString().toFloat(), -45.0f, 45.0f);  // unificado a ±45°
       f.close();
     }
     Serial.printf("Trim timon cargado: %.1f\n", trimTimon);
@@ -100,8 +100,19 @@ static const double Kp_heading = 0.40;
 }*/
 
 void ResetearTimon() {
-    timonReferenciada = true;
-    Serial.println("Timon: referencia confirmada");
+    if (timonReferenciada) {
+        // Segundo CTR: borrar referencia para poder recentrar
+        potAdcCentro    = 0;
+        potAdcIzquierda = 0;
+        potAdcDerecha   = 0;
+        timonReferenciada = false;
+        Serial.println("Timon: referencia borrada - centra y pulsa CTR de nuevo");
+    } else {
+        // Primer CTR: memorizar ADC actual como centro fisico real (180 grados)
+        encoderSetCentro();
+        timonReferenciada = true;
+        Serial.println("Timon: referencia confirmada - centro memorizado");
+    }
 }
 
 // ============================================================

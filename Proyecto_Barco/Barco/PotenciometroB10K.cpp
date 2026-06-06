@@ -3,14 +3,17 @@
 // GPIO 34 -> ADC1_CH6 (input-only, no necesita pinMode OUTPUT)
 // Filtro: promedio movil de 10 muestras para eliminar ruido ADC
 //
-// CALIBRACION: medir ADC con el timon en cada tope fisico y ajustar:
-//   POT_ADC_IZQUIERDA -> timon en tope izquierdo  (90 grados)
-//   POT_ADC_DERECHA   -> timon en tope derecho     (270 grados)
-// El centro (180 grados) queda automaticamente en el punto medio entre ambos.
-// Para obtener los valores: observar el log [POT] adc=XXXX con el timon en cada tope.
+// CALIBRACION: centrar el timon fisicamente y pulsar CTR en la web.
+// Esto fija el centro ADC y calcula los topes como centro ± AMPLITUD_GIRO.
+// Para ver el ADC actual: observar el log [POT] adc=XXXX
 
 #include "PotenciometroB10K.h"
 #include "Utilidades.h"
+
+// ─── CENTRO DINAMICO Y TOPES CALCULADOS ──────────────
+int potAdcCentro    = 0;
+int potAdcIzquierda = 0;
+int potAdcDerecha   = 0;
 
 // ─── FILTRO PROMEDIO MOVIL ────────────────────────────
 #define FILTER_SAMPLES 10
@@ -40,21 +43,42 @@ void setupHW040Encoder() {
     filterFull = true;
     Serial.printf("[POT] Potenciometro B10K OK - GPIO %d - lectura inicial: %d\n",
                   POT_PIN, analogRead(POT_PIN));
+    Serial.println("[POT] Centra el timon y pulsa CTR para fijar referencia");
 }
 
 // ─── LOOP ────────────────────────────────────────────
 void loopHW040Encoder() {
     if (timer_log_HW040Encoder.listo(1000)) {
-        Serial.printf("[POT] adc=%d grados=%d\n", analogRead(POT_PIN), encoderGetDegrees());
+        int adc = filteredADC();
+        Serial.printf("[POT] adc=%d grados=%d centroADC=%d izq=%d der=%d\n",
+                      adc, encoderGetDegrees(),
+                      potAdcCentro, potAdcIzquierda, potAdcDerecha);
     }
+}
+
+// ─── FIJAR CENTRO Y CALCULAR TOPES ───────────────────
+void encoderSetCentro() {
+    potAdcCentro    = filteredADC();
+    potAdcIzquierda = potAdcCentro - AMPLITUD_GIRO;
+    potAdcDerecha   = potAdcCentro + AMPLITUD_GIRO;
+    Serial.printf("[POT] Centro fijado: ADC=%d  izq=%d  der=%d\n",
+                  potAdcCentro, potAdcIzquierda, potAdcDerecha);
 }
 
 // ─── API ─────────────────────────────────────────────
 int encoderGetDegrees() {
+    // Sin referencia: devolver 180 (centro) para no mover el timon
+    if (potAdcCentro == 0) return 180;
+
     int adc = filteredADC();
-    // Mapear entre los topes fisicos calibrados -> 90 a 270 grados
-    // Fuera de rango se clampea para evitar valores absurdos
-    int deg = (int)map(adc, POT_ADC_IZQUIERDA, POT_ADC_DERECHA, 90, 270);
+    int deg;
+    if (adc <= potAdcCentro) {
+        // Tramo izquierdo: potAdcIzquierda..potAdcCentro -> 90..180 grados
+        deg = (int)map(adc, potAdcIzquierda, potAdcCentro, 90, 180);
+    } else {
+        // Tramo derecho: potAdcCentro..potAdcDerecha -> 180..270 grados
+        deg = (int)map(adc, potAdcCentro, potAdcDerecha, 180, 270);
+    }
     return constrain(deg, 90, 270);
 }
 
@@ -64,9 +88,7 @@ int32_t encoderGetSteps() {
 }
 
 void encoderReset() {
-    // Con potenciometro no hay pasos que resetear.
-    // La referencia se confirma externamente via timonReferenciada en TimonSistema.
-    // Esta funcion se mantiene por compatibilidad con ResetearTimon()
+    // Compatibilidad - la referencia se gestiona via timonReferenciada en TimonSistema
 }
 
 bool encoderButtonPressed() {
