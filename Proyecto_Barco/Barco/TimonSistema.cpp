@@ -1,5 +1,5 @@
 #include "TimonSistema.h"
-#include "PotenciometroB10K.h"
+#include "AS5600_Magnetic_Sensor.h"
 //#include "HW040Encoder.h"
 #include "ESCMotor.h"
 #include "Utilidades.h"
@@ -99,7 +99,7 @@ static const double Kp_heading = 0.40;
   Serial.println("Timon: referencia reseteada - centro=0");
 }*/
 
-void ResetearTimon() {
+/*void ResetearTimon() {
     if (timonReferenciada) {
         // Segundo CTR: borrar referencia para poder recentrar
         potAdcCentro    = 0;
@@ -110,6 +110,18 @@ void ResetearTimon() {
     } else {
         // Primer CTR: memorizar ADC actual como centro fisico real (180 grados)
         encoderSetCentro();
+        timonReferenciada = true;
+        Serial.println("Timon: referencia confirmada - centro memorizado");
+    }
+}*/
+void ResetearTimon() {
+    if (timonReferenciada) {
+        // Segundo CTR: borrar referencia para poder recentrar
+        encoderBorrarCentro();  // borra RAM + SPIFFS
+        timonReferenciada = false;
+    } else {
+        // Primer CTR: memorizar angulo actual como centro fisico real
+        encoderSetCentro();     // guarda RAM + SPIFFS
         timonReferenciada = true;
         Serial.println("Timon: referencia confirmada - centro memorizado");
     }
@@ -179,13 +191,20 @@ void updateTimon() {
   bool sentido = false;
 
   // Determinar direccion de giro segun si estamos por encima o por debajo del objetivo
-  if (timonEnGrados > TIMON_OBJETIVO_EN_GRADOS) {
+  /*if (timonEnGrados > TIMON_OBJETIVO_EN_GRADOS) {
     velocidad = TIMON_PWM_MAX;
     sentido = false; // girar hacia menor grado
   } else {
     velocidad = TIMON_PWM_MAX;
     sentido = true;  // girar hacia mayor grado
-  }
+  }*/
+  if (timonEnGrados > TIMON_OBJETIVO_EN_GRADOS) {
+    velocidad = TIMON_PWM_MAX;
+    sentido = true;
+} else {
+    velocidad = TIMON_PWM_MAX;
+    sentido = false;
+}
 
   // Proteccion topes fisicos: si el encoder llega a 0 o 360 parar el motor
   if (timonEnGrados <= 0 || timonEnGrados >= 360) velocidad = 0;
@@ -210,11 +229,24 @@ void updateTimon() {
 // ============================================================
 //  SETUP
 // ============================================================
-void SetupTimon() {
+/*void SetupTimon() {
   // SPIFFS ya montado por Barco.ino
   loadTrim();
 
   Serial.println("TimonSistema: OK");
 
   Serial.println("  >> Centra el timon y pulsa SW o CTR en la web para fijar referencia");
+}*/
+void SetupTimon() {
+  // SPIFFS ya montado por Barco.ino
+  loadTrim();
+
+  // Si el AS5600 cargo el centro desde SPIFFS, arrancar ya referenciado
+  if (as5600CentroValido) {
+      timonReferenciada = true;
+      Serial.println("TimonSistema: referencia recuperada de SPIFFS - listo");
+  } else {
+      Serial.println("TimonSistema: OK");
+      Serial.println("  >> Centra el timon y pulsa CTR en la web para fijar referencia");
+  }
 }

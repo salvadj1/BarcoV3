@@ -1,4 +1,4 @@
-#include "PotenciometroB10K.h"
+#include "AS5600_Magnetic_Sensor.h"
 #include "TB6612FNG.h"
 
 #include "Utilidades.h"
