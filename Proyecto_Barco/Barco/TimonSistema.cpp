@@ -24,7 +24,7 @@ int timonEnGrados = 180;
 int TIMON_OBJETIVO_EN_GRADOS = 180;
 int Timon_ultimo_objetivo = 180;
 
-static const int ZONA_MUERTA = 4;
+static const int ZONA_MUERTA = 1;
 // ============================================================
 //  PERSISTENCIA SPIFFS
 // ============================================================
@@ -77,7 +77,8 @@ double calcBearing(double lat1, double lng1, double lat2, double lng2) {
 // ============================================================
 //  PARAMETROS AUTONOMO
 // ============================================================
-static const double Kp_heading = 0.40;
+//static const double Kp_heading = 0.40;
+static const double Kp_heading = 0.80;
 
 
 
