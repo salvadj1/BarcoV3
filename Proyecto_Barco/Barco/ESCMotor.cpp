@@ -8,7 +8,7 @@ static Servo escMotor;
 
 // ---------- VARIABLES EXPORTADAS ----------
 int throttleMax = 50;
-int throttleMin = 6;
+int throttleMin = 12;
 bool motorRunning = false;
 int motorPctActual = 0;
 

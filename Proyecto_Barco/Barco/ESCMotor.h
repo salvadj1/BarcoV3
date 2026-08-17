@@ -17,7 +17,7 @@
 
 // ---------- ESTADO EXPORTADO ----------
 extern int throttleMax;     // velocidad maxima de crucero (0-100%)
-extern int throttleMin;     // velocidad minima durante freno progresivo (0-50%), default 6
+extern int throttleMin;     // velocidad minima durante freno progresivo (0-50%), default 12
 extern bool motorRunning;   // true si el motor esta en marcha
 extern int motorPctActual;  // velocidad real actual del motor 0-100%
 

@@ -12,6 +12,8 @@ uint8_t macPlaya[6] = { 0xF4, 0x65, 0x0B, 0x57, 0x0D, 0x08 };
 #include "ESCMotor.h"
 #include "TimonSistema.h"
 #include "Servos.h"
+#include "VoltajeSensor.h"
+#include "LucesCOB.h"
 
 // ---------- CALLBACK: COMANDO RECIBIDO DESDE PLAYA ----------
 void onComandoRecibido(const uint8_t* mac, const uint8_t* data, int len) {
@@ -175,6 +177,11 @@ void EnviarTelemetria() {
   t.alt = gps.altitude.isValid() ? (float)gps.altitude.meters() : 0;
   t.sats = gps.satellites.isValid() ? (uint8_t)gps.satellites.value() : 0;
   t.hdop = gps.hdop.isValid() ? (float)gps.hdop.hdop() : 99.9f;
+  t.battPct = voltajePct;
+
+  t.joySteer = (int8_t)joySteer;
+  t.lucesBabor = (uint8_t)cobModo[COB_BABOR];
+  t.lucesEstribor = (uint8_t)cobModo[COB_ESTRIBOR];
 
   t.navState = (uint8_t)navState;
   t.cebo1Abierto = cebo1Abierto;

@@ -45,6 +45,12 @@ body{background:var(--bg);color:var(--text);font-family:'Courier New',monospace;
 .link-status{font-size:.6rem;padding:1px 6px;border-radius:9px;white-space:nowrap;}
 .link-ok{background:rgba(0,255,136,.1);color:var(--green);border:1px solid var(--green);}
 .link-lost{background:rgba(255,59,59,.1);color:var(--red);border:1px solid var(--red);}
+.batt-badge{display:flex;align-items:center;gap:3px;font-size:.62rem;white-space:nowrap;color:var(--text);}
+.batt-icon{width:20px;height:11px;border:1.3px solid var(--text);border-radius:2px;position:relative;padding:1.5px;display:flex;}
+.batt-icon::after{content:'';position:absolute;right:-3px;top:3px;width:2px;height:5px;background:var(--text);border-radius:0 1px 1px 0;}
+.batt-fill{height:100%;border-radius:1px;background:var(--green);transition:width .3s,background .3s;}
+.batt-fill.mid{background:var(--warn);}
+.batt-fill.low{background:var(--red);}
 .grid{display:grid;grid-template-columns:1fr 1fr;gap:7px;padding:7px;}
 @media(max-width:480px){.grid{grid-template-columns:1fr;}}
 .panel{background:var(--panel);border:1px solid var(--border);border-radius:6px;padding:10px;}
@@ -142,6 +148,28 @@ canvas{width:100%;display:block;border-radius:4px;background:var(--map-bg);}
 .quad-col .stat-lbl{font-size:.68rem;text-align:center;}
 .quad-col input[type="range"]{width:100%;}
 .dual-row{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px;}
+/* ===== Layout exclusivo pestaña DATOS (raw JSON) ===== */
+#page-dat.active{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;padding:7px;align-content:start;}
+@media(max-width:480px){#page-dat.active{grid-template-columns:repeat(2,1fr);}}
+.dat-item{background:var(--panel);border:1px solid var(--border);border-radius:4px;padding:4px 6px;overflow:hidden;}
+.dat-k{color:var(--dim);font-size:.64rem;letter-spacing:.03em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.dat-v{color:var(--accent2);font-size:.85rem;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+/* ===== Animacion cambio de pestana ===== */
+@keyframes tpInR{from{opacity:0;transform:translateX(18px);}to{opacity:1;transform:translateX(0);}}
+@keyframes tpInL{from{opacity:0;transform:translateX(-18px);}to{opacity:1;transform:translateX(0);}}
+.tab-page.tp-r{animation:tpInR .22s ease;}
+.tab-page.tp-l{animation:tpInL .22s ease;}
+/* ===== Iconos luces COB (telemetria) ===== */
+.luz-row{display:flex;gap:10px;justify-content:center;margin-top:6px;padding-top:6px;border-top:1px solid var(--border);}
+.luz-item{display:flex;align-items:center;gap:4px;font-size:.62rem;color:var(--dim);}
+.luz-dot{width:11px;height:11px;border-radius:50%;background:var(--border);border:1px solid var(--dim);}
+.luz-dot.on{background:var(--warn);border-color:var(--warn);box-shadow:0 0 6px var(--warn);}
+@keyframes luzParpadeo{0%,49%{opacity:1;}50%,100%{opacity:.15;}}
+@keyframes luzDestello{0%,88%{opacity:.15;}92%,96%{opacity:1;}100%{opacity:.15;}}
+@keyframes luzAlerta{0%,49%{opacity:1;}50%,100%{opacity:.15;}}
+.luz-dot.mode-parpadeo{animation:luzParpadeo 1s infinite;}
+.luz-dot.mode-destello{animation:luzDestello 1.5s infinite;}
+.luz-dot.mode-alerta{animation:luzAlerta .16s infinite;}
 </style>
 </head>
 <body>
@@ -152,8 +180,13 @@ canvas{width:100%;display:block;border-radius:4px;background:var(--map-bg);}
     <div class="top-tab active" id="mtab-monitor" onclick="switchMainTab('monitor')">&#128225; MON</div>
     <div class="top-tab" id="mtab-nav" onclick="switchMainTab('nav')">&#128506; NAV</div>
     <div class="top-tab" id="mtab-ajustes" onclick="switchMainTab('ajustes')">&#9881; AJU</div>
+    <div class="top-tab" id="mtab-dat" onclick="switchMainTab('dat')">&#128202; DAT</div>
   </div>
   <div class="top-right">
+    <span class="batt-badge" id="batt-badge">
+      <div class="batt-icon"><div class="batt-fill" id="batt-fill" style="width:0%;"></div></div>
+      <span id="batt-pct">--%</span>
+    </span>
     <button class="theme-btn" id="theme-btn" onclick="toggleTheme()">&#9788; CLARO</button>
     <span id="calib-progress-badge" style="display:none;font-size:.6rem;padding:1px 6px;border-radius:9px;background:rgba(255,107,53,.1);color:var(--accent3);border:1px solid var(--accent3);">CAL 0%</span>
     <span id="link-badge" class="link-status link-lost">SIN SE&#209;AL</span>
@@ -219,6 +252,10 @@ canvas{width:100%;display:block;border-radius:4px;background:var(--map-bg);}
         </svg>
       </div>
     </div>
+    <div class="luz-row">
+      <div class="luz-item"><div class="luz-dot" id="luz-babor"></div> BABOR</div>
+      <div class="luz-item"><div class="luz-dot" id="luz-estribor"></div> ESTRIBOR</div>
+    </div>
   </div>
 
 <!-- 4. VIAJE AUTONOMO -->
@@ -237,8 +274,8 @@ canvas{width:100%;display:block;border-radius:4px;background:var(--map-bg);}
       </div>
       <div class="quad-col">
         <span class="stat-lbl" title="Velocidad m&#237;nima del motor para mantener el rumbo">VEL M&#205;N <span style="opacity:.6;">&#9432;</span></span>
-        <input type="range" id="thrmin-slider" min="0" max="50" value="6" oninput="setThrottleMin(this.value)" style="accent-color:var(--warn);">
-        <span id="thrmin-val" style="color:var(--warn);font-weight:700;">6%</span>
+        <input type="range" id="thrmin-slider" min="0" max="50" value="12" oninput="setThrottleMin(this.value)" style="accent-color:var(--warn);">
+        <span id="thrmin-val" style="color:var(--warn);font-weight:700;">12%</span>
       </div>
       <div class="quad-col">
         <span class="stat-lbl" title="Distancia al punto objetivo para darlo por alcanzado">PROXIMIDAD <span style="opacity:.6;">&#9432;</span></span>
@@ -388,12 +425,21 @@ canvas{width:100%;display:block;border-radius:4px;background:var(--map-bg);}
 </div>
 </div>
 
+<div class="tab-page" id="page-dat"></div>
+
 <script>
 // ===== PESTA&#209;AS PRINCIPALES =====
-function switchMainTab(name){
-  ['monitor','nav','ajustes'].forEach(n=>{
-    document.getElementById('page-'+n).classList.toggle('active',n===name);
+function switchMainTab(name,dir){
+  ['monitor','nav','ajustes','dat'].forEach(n=>{
+    const page=document.getElementById('page-'+n);
+    const wasActive=page.classList.contains('active');
+    page.classList.toggle('active',n===name);
     document.getElementById('mtab-'+n).classList.toggle('active',n===name);
+    page.classList.remove('tp-r','tp-l');
+    if(n===name&&!wasActive&&dir){
+      void page.offsetWidth; // reinicia animacion
+      page.classList.add(dir>0?'tp-r':'tp-l');
+    }
   });
   localStorage.setItem('mainTab',name);
   if(name==='nav')resize();
@@ -402,21 +448,21 @@ function switchMainTab(name){
 
 // ===== SWIPE ENTRE PESTA&#209;AS (Android/t&#225;ctil) =====
 (function(){
-  const ORDEN=['monitor','nav','ajustes'];
+  const ORDEN=['monitor','nav','ajustes','dat'];
   let sx=0,sy=0,st=0;
   document.body.addEventListener('touchstart',e=>{
-    if(e.target.closest('.ctrl-track,.timon-btn,#map-canvas,input,select,textarea'))return;
+    if(e.target.closest('.ctrl-track,.timon-btn,input,select,textarea'))return;
     const t=e.touches[0];sx=t.clientX;sy=t.clientY;st=Date.now();
   },{passive:true});
   document.body.addEventListener('touchend',e=>{
-    if(e.target.closest('.ctrl-track,.timon-btn,#map-canvas,input,select,textarea'))return;
+    if(e.target.closest('.ctrl-track,.timon-btn,input,select,textarea'))return;
     const t=e.changedTouches[0];
     const dx=t.clientX-sx,dy=t.clientY-sy,dt=Date.now()-st;
     if(Math.abs(dx)>60&&Math.abs(dy)<50&&dt<600){
       const actual=ORDEN.find(n=>document.getElementById('mtab-'+n).classList.contains('active'));
       let i=ORDEN.indexOf(actual);
       i=dx<0?Math.min(i+1,ORDEN.length-1):Math.max(i-1,0);
-      switchMainTab(ORDEN[i]);
+      switchMainTab(ORDEN[i],dx<0?1:-1);
     }
   },{passive:true});
 })();
@@ -621,7 +667,7 @@ function motorColor(p){
 
 // ===== CONTROL MOTOR (slider) =====
 const KW=46,KW_SM=38;
-(function(){
+const motorCtrl=(function(){
   const track=document.getElementById('motor-track');
   const knob=document.getElementById('motor-knob');
   const kw=KW;
@@ -654,6 +700,7 @@ const KW=46,KW_SM=38;
   knob.addEventListener('touchstart',startDrag,{passive:false});document.addEventListener('touchmove',moveDrag,{passive:false});
   document.addEventListener('touchend',endDrag);document.addEventListener('touchcancel',endDrag);
   requestAnimationFrame(()=>setPct(0,true));
+  return{get dragging(){return dragging;},set:(p,r=true)=>setPct(p,r)};
 })();
 
 // ===== TRIM =====
@@ -696,6 +743,19 @@ const slbl={IDLE:'EN ESPERA',GOING_CEBO1:'\u2191 HACIA CEBO 1',GOING_CEBO2:'\u21
 function fmt(s){return String(Math.floor(s/60)).padStart(2,'0')+':'+String(s%60).padStart(2,'0');}
 function fmtETA(s){return(!s||s>86400)?'--:--':fmt(Math.round(s));}
 
+// ===== PESTA&#209;A DAT: pinta todo el JSON crudo como titulo/valor =====
+function renderDat(d){
+  const box=document.getElementById('page-dat');
+  let html='';
+  for(const k in d){
+    if(k==='history')continue; // array, no aporta como celda
+    let v=d[k];
+    if(Array.isArray(v)||typeof v==='object')v=JSON.stringify(v);
+    html+='<div class="dat-item"><div class="dat-k">'+k+'</div><div class="dat-v">'+v+'</div></div>';
+  }
+  box.innerHTML=html;
+}
+
 // ===== POLL =====
 function poll(){
   fetch('/data').then(r=>r.json()).then(d=>{
@@ -722,6 +782,34 @@ function poll(){
     document.getElementById('tele-alt').textContent=Math.round(d.alt);
     for(let i=0;i<12;i++)document.getElementById('sb'+i).className='sb'+(i<d.sats?' on':'');
     document.getElementById('motor-pct').textContent=d.linkOk?(d.motorPct+'%'):'--';
+
+    // Sincroniza el slider MOTOR (AJUSTES) con cualquier fuente externa: gamepad fisico, viaje autonomo, stop
+    if(!motorCtrl.dragging&&d.motorPct!==undefined)motorCtrl.set(d.motorPct,true);
+
+    // Resalta botones de timon si el rumbo viene de una fuente externa (gamepad fisico)
+    if(timonDir===0){
+      document.getElementById('timon-btn-izq').classList.toggle('pressed',d.joySteer===-1);
+      document.getElementById('timon-btn-der').classList.toggle('pressed',d.joySteer===1);
+    }
+
+    // Iconos de luces COB (babor/estribor) en tiempo real
+    const modoCls=['','','mode-parpadeo','mode-destello','mode-alerta'];
+    function updLuz(id,modo){
+      const el=document.getElementById(id);
+      el.className='luz-dot'+(modo>0?' on':'')+(modoCls[modo]?' '+modoCls[modo]:'');
+    }
+    updLuz('luz-babor',d.lucesBabor||0);
+    updLuz('luz-estribor',d.lucesEstribor||0);
+
+    // Bateria (icono estilo movil)
+    const bp=Math.max(0,Math.min(100,d.battPct||0));
+    const bf=document.getElementById('batt-fill');
+    bf.style.width=(d.linkOk?bp:0)+'%';
+    bf.className='batt-fill'+(bp<20?' low':bp<50?' mid':'');
+    document.getElementById('batt-pct').textContent=d.linkOk?(Math.round(bp)+'%'):'--%';
+
+    // Pestana DAT: JSON crudo (titulo/valor)
+    if(document.getElementById('page-dat').classList.contains('active'))renderDat(d);
 
     // Timon: mostrar grados reales y badge referencia
     const refBadge=document.getElementById('ref-badge');
@@ -835,6 +923,10 @@ void handleData() {
     j += "\"alt\":"       + String(t.alt, 1) + ",";
     j += "\"sats\":"      + String(t.sats) + ",";
     j += "\"hdop\":"      + String(t.hdop, 1) + ",";
+    j += "\"battPct\":"   + String(t.battPct, 0) + ",";
+    j += "\"joySteer\":"  + String(t.joySteer) + ",";
+    j += "\"lucesBabor\":" + String(t.lucesBabor) + ",";
+    j += "\"lucesEstribor\":" + String(t.lucesEstribor) + ",";
     j += "\"course\":"    + String(t.course, 1) + ",";
     j += "\"navState\":\"" + ns + "\",";
     j += "\"distRemaining\":" + String(distRem, 1) + ",";

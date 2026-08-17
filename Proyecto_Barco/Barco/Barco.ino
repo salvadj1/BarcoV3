@@ -7,6 +7,7 @@
 #include "GPS_Neo_6M.h"
 #include "ADXL345_Module.h"
 #include "GY273_Module.h"
+#include "I2C_Scanner.h"
 #include "ESCMotor.h"
 #include "TimonSistema.h"
 #include "Servos.h"
@@ -39,6 +40,7 @@ void setup() {
   Serial.println("SPIFFS OK");
 
   Wire.begin(21, 22);  // I2C: SDA=21, SCL=22
+  EscanearI2C();        // lista por Serial los sensores detectados (util para verificar cableado/direccion)
 
   SetupESC();    // ESC / motor principal (GPIO 25)
   SetupTimon();  // Motor DC timon + encoder (GPIO 26,4,32,33,34,35)

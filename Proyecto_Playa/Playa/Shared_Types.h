@@ -18,6 +18,12 @@ struct TelemetriaBarco {
     float    hdop;
     bool     fix;
 
+    float    battPct;    // porcentaje bateria 0-100 (VoltajeSensor)
+
+    int8_t   joySteer;    // rumbo joystick en tiempo real: -1=izq, 0=centro, 1=der (fisico o web)
+    uint8_t  lucesBabor;    // ModoCOB actual lado babor (0=apagado..4=alerta)
+    uint8_t  lucesEstribor; // ModoCOB actual lado estribor
+
     uint8_t  navState;
 
     bool     cebo1Abierto;
