@@ -4,7 +4,7 @@
 #include <esp_now.h>
 
 // MAC del ESP32 de la Playa - CAMBIAR POR LA MAC REAL
-uint8_t macPlaya[6] = { 0x40, 0x22, 0xD8, 0x05, 0x05, 0xAC };
+uint8_t macPlaya[6] = { 0xF4, 0x65, 0x0B, 0x57, 0x0D, 0x08 };
 
 #include "GPS_Neo_6M.h"
 #include "GY273_Module.h"

@@ -115,6 +115,15 @@ bool LoopGPS() {
         gps.encode(gpsSerial.read());
     }
 
+    // ---------- DEBUG: estado crudo del parser NMEA cada 1s ----------
+    static unsigned long lastDebugMs = 0;
+    if (millis() - lastDebugMs >= 1000) {
+        lastDebugMs = millis();
+        Serial.printf("[GPS-DEBUG] chars=%lu sentencesOK=%lu checksumFail=%lu valid=%d\n",
+                      gps.charsProcessed(), gps.sentencesWithFix(),
+                      gps.failedChecksum(), gps.location.isValid());
+    }
+
     if (gps.location.isValid()) {
         updateFilter(gps.location.lat(), gps.location.lng());
         return true;

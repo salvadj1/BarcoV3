@@ -36,7 +36,12 @@ extern Timer timer_lectura_MPU6050;
 extern Timer timer_log_MPU6050;
 extern Timer timer_log_HW040Encoder;
 
+extern Timer timer_lectura_Voltaje;
+extern Timer timer_lectura_LucesCOB; 
+
 extern Timer timer_telemetria;
+
+
 // ===== FUNCIONES ==============================================================
 void SetupUtilidades();
 void parpadearLed(uint8_t pin, uint16_t veces, uint32_t duracionEncendido, uint32_t esperaEntreParpadeos);

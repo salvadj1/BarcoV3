@@ -30,16 +30,19 @@ body.light{
 }
 *{box-sizing:border-box;margin:0;padding:0;}
 body{background:var(--bg);color:var(--text);font-family:'Courier New',monospace;font-size:.85rem;min-height:100vh;transition:background .3s,color .3s;}
-.top-bar{display:flex;align-items:center;justify-content:space-between;padding:5px 12px;background:var(--panel);border-bottom:1px solid var(--border);}
-.logo{color:var(--accent);font-size:.85rem;font-weight:700;letter-spacing:.12em;}
-.top-right{display:flex;align-items:center;gap:7px;flex-wrap:nowrap;}
-.gps-badge{display:flex;align-items:center;gap:4px;font-size:.72rem;}
-.dot{width:7px;height:7px;border-radius:50%;background:var(--dim);flex-shrink:0;}
+.top-bar{display:flex;align-items:center;gap:6px;padding:3px 8px;background:var(--panel);border-bottom:1px solid var(--border);overflow-x:auto;}
+.logo{color:var(--accent);font-size:.68rem;font-weight:700;letter-spacing:.1em;white-space:nowrap;flex-shrink:0;}
+.top-tabs{display:flex;gap:2px;flex-shrink:0;}
+.top-tab{padding:2px 6px;font-size:.62rem;letter-spacing:.04em;color:var(--dim);cursor:pointer;border-radius:9px;white-space:nowrap;}
+.top-tab.active{color:var(--accent);background:rgba(0,212,255,.1);}
+.top-right{display:flex;align-items:center;gap:5px;flex-wrap:nowrap;margin-left:auto;}
+.gps-badge{display:flex;align-items:center;gap:3px;font-size:.6rem;white-space:nowrap;}
+.dot{width:5px;height:5px;border-radius:50%;background:var(--dim);flex-shrink:0;}
 .dot.on{background:var(--accent2);box-shadow:0 0 6px var(--accent2);}
-#gps-time{color:var(--dim);font-size:.7rem;}
-.theme-btn{background:transparent;border:1px solid var(--border);border-radius:12px;padding:2px 8px;color:var(--dim);font-family:inherit;font-size:.7rem;cursor:pointer;white-space:nowrap;}
+#gps-time{color:var(--dim);font-size:.6rem;white-space:nowrap;}
+.theme-btn{background:transparent;border:1px solid var(--border);border-radius:9px;padding:1px 6px;color:var(--dim);font-family:inherit;font-size:.6rem;cursor:pointer;white-space:nowrap;}
 .theme-btn:hover{border-color:var(--accent);color:var(--accent);}
-.link-status{font-size:.7rem;padding:2px 7px;border-radius:10px;white-space:nowrap;}
+.link-status{font-size:.6rem;padding:1px 6px;border-radius:9px;white-space:nowrap;}
 .link-ok{background:rgba(0,255,136,.1);color:var(--green);border:1px solid var(--green);}
 .link-lost{background:rgba(255,59,59,.1);color:var(--red);border:1px solid var(--red);}
 .grid{display:grid;grid-template-columns:1fr 1fr;gap:7px;padding:7px;}
@@ -50,7 +53,11 @@ body{background:var(--bg);color:var(--text);font-family:'Courier New',monospace;
 .coord-val{color:var(--accent2);font-size:.85rem;font-weight:700;}
 .stat-row{display:flex;justify-content:space-between;align-items:center;padding:4px 0;border-bottom:1px solid var(--border);}
 .stat-lbl{color:var(--dim);font-size:.78rem;}
-.trip-lbl{font-size:.85rem;font-weight:700;letter-spacing:.06em;margin-bottom:5px;}
+.trip-lbl{font-size:1.3rem;font-weight:700;letter-spacing:.06em;margin-bottom:5px;text-align:center;}
+@keyframes blink-idle{0%,49%{opacity:1;}50%,100%{opacity:.25;}}
+@keyframes blink-going{0%,29%{opacity:1;}30%,100%{opacity:.25;}}
+.trip-lbl.blink-idle{animation:blink-idle 2s infinite;}
+.trip-lbl.blink-going{animation:blink-going .5s infinite;}
 .sat-grid{display:flex;flex-wrap:wrap;gap:3px;}
 .sb{width:9px;height:9px;border-radius:2px;background:var(--border);}
 .sb.on{background:var(--accent2);}
@@ -74,6 +81,29 @@ body{background:var(--bg);color:var(--text);font-family:'Courier New',monospace;
 .map-tab.active{border-color:var(--accent);color:var(--accent);}
 canvas{width:100%;display:block;border-radius:4px;background:var(--map-bg);}
 .point-coord{color:var(--dim);font-size:.72rem;}
+/* ===== Layout exclusivo pestaña NAVEGACION ===== */
+#page-nav.active{display:block;padding:0;}
+.nav-split{display:flex;gap:7px;padding:7px;}
+.nav-split>.panel{flex:1;min-width:0;}
+.nav-map-col{display:flex;flex-direction:column;}
+.nav-map-col canvas{flex:1;min-height:220px;}
+.nav-coords-row{display:flex;gap:6px;font-size:.66rem;white-space:nowrap;overflow:hidden;margin:8px 0;}
+.nav-coords-row>div{flex:1;overflow:hidden;text-overflow:ellipsis;}
+.nav-coords-col{display:flex;flex-direction:column;gap:5px;font-size:.72rem;margin:8px 0;padding:8px 0;border-top:1px solid var(--border);border-bottom:1px solid var(--border);}
+.nav-btn-row{display:flex;gap:6px;}
+.nav-btn-row .btn{flex:1;margin-top:0;white-space:nowrap;}
+@media(max-width:480px){.nav-split{flex-direction:column;}}
+/* ===== Layout exclusivo pestaña AJUSTES (modo gamepad) ===== */
+#page-ajustes.active{display:flex;flex-direction:column;padding:7px;gap:6px;box-sizing:border-box;min-height:calc(100vh - 34px);}
+.aj-top-row{display:flex;gap:6px;}
+.aj-top-row>.btn-cebo{flex:1;}
+.aj-mid-row{display:flex;gap:6px;align-items:stretch;}
+.aj-mid-col{flex:1;display:flex;flex-direction:column;}
+.aj-mid-col .ctrl-lbl-row{margin-top:0;}
+.aj-stop-col{width:80px;flex-shrink:0;display:flex;}
+.aj-stop-col .ctrl-stop{flex:1;margin-top:0;height:100%;}
+.aj-timon-block{margin-top:auto;}
+.aj-timon-toprow{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;flex-wrap:wrap;gap:4px;}
 
 /* ===== CONTROL MANUAL ===== */
 .ctrl-section{margin-top:4px;}
@@ -104,15 +134,28 @@ canvas{width:100%;display:block;border-radius:4px;background:var(--map-bg);}
 
 .ctrl-stop{width:100%;margin-top:10px;padding:10px;background:rgba(255,59,59,.08);border:1.5px solid var(--red);border-radius:5px;color:var(--red);font-family:inherit;font-size:.8rem;letter-spacing:.1em;cursor:pointer;}
 .ctrl-stop:active{background:rgba(255,59,59,.22);}
+.tab-page{display:none;}
+.tab-page.active{display:grid;grid-template-columns:1fr 1fr;gap:7px;padding:7px;}
+@media(max-width:480px){.tab-page.active{grid-template-columns:1fr;}}
+.quad-row{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:6px;}
+.quad-col{display:flex;flex-direction:column;align-items:center;gap:4px;}
+.quad-col .stat-lbl{font-size:.68rem;text-align:center;}
+.quad-col input[type="range"]{width:100%;}
+.dual-row{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px;}
 </style>
 </head>
 <body>
 
 <div class="top-bar">
   <span class="logo">&#9875; BARCO</span>
+  <div class="top-tabs">
+    <div class="top-tab active" id="mtab-monitor" onclick="switchMainTab('monitor')">&#128225; MON</div>
+    <div class="top-tab" id="mtab-nav" onclick="switchMainTab('nav')">&#128506; NAV</div>
+    <div class="top-tab" id="mtab-ajustes" onclick="switchMainTab('ajustes')">&#9881; AJU</div>
+  </div>
   <div class="top-right">
     <button class="theme-btn" id="theme-btn" onclick="toggleTheme()">&#9788; CLARO</button>
-    <span id="calib-progress-badge" style="display:none;font-size:.7rem;padding:2px 8px;border-radius:10px;background:rgba(255,107,53,.1);color:var(--accent3);border:1px solid var(--accent3);">CAL 0%</span>
+    <span id="calib-progress-badge" style="display:none;font-size:.6rem;padding:1px 6px;border-radius:9px;background:rgba(255,107,53,.1);color:var(--accent3);border:1px solid var(--accent3);">CAL 0%</span>
     <span id="link-badge" class="link-status link-lost">SIN SE&#209;AL</span>
     <div class="gps-badge">
       <div class="dot" id="gps-dot"></div>
@@ -122,7 +165,7 @@ canvas{width:100%;display:block;border-radius:4px;background:var(--map-bg);}
   </div>
 </div>
 
-<div class="grid">
+<div class="tab-page active" id="page-monitor">
 
   <!-- 1. POSICION GPS -->
   <div class="panel">
@@ -178,12 +221,66 @@ canvas{width:100%;display:block;border-radius:4px;background:var(--map-bg);}
     </div>
   </div>
 
-  <!-- 3. CONTROL MANUAL -->
+<!-- 4. VIAJE AUTONOMO -->
   <div class="panel" style="grid-column:1/-1;">
-    <div class="panel-title">&#127917; Control Manual <span id="joy-mode-badge" style="font-size:.68rem;color:var(--dim);">(solo en IDLE)</span></div>
-    <div class="ctrl-section">
+    <div class="panel-title">&#128674; Viaje Aut&#243;nomo</div>
+    <div class="trip-lbl" id="trip-lbl" style="color:var(--idle);">EN ESPERA</div>
+    <div id="dist-val" style="display:none;"></div>
+    <div id="dist-u" style="display:none;"></div>
+    <div class="stat-row"><span class="stat-lbl">ETA</span><span id="eta-val">--:--</span></div>
+    <div style="font-size:.68rem;color:var(--dim);letter-spacing:.08em;text-transform:uppercase;margin-top:10px;border-top:1px solid var(--border);padding-top:8px;">Par&#225;metros del viaje aut&#243;nomo</div>
+    <div class="quad-row">
+      <div class="quad-col">
+        <span class="stat-lbl" title="Velocidad m&#225;xima del motor durante el trayecto">VEL M&#193;X <span style="opacity:.6;">&#9432;</span></span>
+        <input type="range" id="thr-slider" min="0" max="100" value="50" oninput="setThrottle(this.value)" style="accent-color:var(--accent);">
+        <span id="thr-val" style="color:var(--accent);font-weight:700;">50%</span>
+      </div>
+      <div class="quad-col">
+        <span class="stat-lbl" title="Velocidad m&#237;nima del motor para mantener el rumbo">VEL M&#205;N <span style="opacity:.6;">&#9432;</span></span>
+        <input type="range" id="thrmin-slider" min="0" max="50" value="6" oninput="setThrottleMin(this.value)" style="accent-color:var(--warn);">
+        <span id="thrmin-val" style="color:var(--warn);font-weight:700;">6%</span>
+      </div>
+      <div class="quad-col">
+        <span class="stat-lbl" title="Distancia al punto objetivo para darlo por alcanzado">PROXIMIDAD <span style="opacity:.6;">&#9432;</span></span>
+        <input type="range" id="prox-slider" min="1" max="30" value="3" oninput="setProximidad(this.value)" style="accent-color:var(--accent2);">
+        <span id="prox-val" style="color:var(--accent2);font-weight:700;">3m</span>
+      </div>
+      <div class="quad-col">
+        <span class="stat-lbl" title="Segundos de espera al llegar a un cebo antes de continuar">PAUSA <span style="opacity:.6;">&#9432;</span></span>
+        <input type="range" id="pausa-slider" min="0" max="30" value="0" oninput="setPausa(this.value)" style="accent-color:var(--accent3);">
+        <span id="pausa-val" style="color:var(--accent3);font-weight:700;">0s</span>
+      </div>
+    </div>
+    <div class="dual-row">
+      <button class="btn btn-go" id="btn-trip" onclick="startTrip()" style="margin-top:0;">&#9654; INICIAR VIAJE</button>
+      <button class="btn btn-stop-trip" id="btn-stop" onclick="stopTrip()" disabled style="margin-top:0;">&#9632; DETENER</button>
+    </div>
+    <div style="margin-top:8px;border-top:1px solid var(--border);padding-top:6px;">
+      <div style="font-size:.68rem;color:var(--dim);letter-spacing:.08em;text-transform:uppercase;margin-bottom:4px;">Estad&#237;sticas del viaje actual</div>
+      <div class="quad-row" style="margin-top:0;">
+        <div class="quad-col"><span class="stat-lbl" title="Distancia recorrida en el viaje actual">DIST. RECORRIDA</span><span id="stat-dist" class="stat-val">0</span> m</div>
+        <div class="quad-col"><span class="stat-lbl" title="Velocidad m&#225;xima alcanzada en este viaje">V. M&#193;X ALCANZADA</span><span id="stat-maxspd" class="stat-val">0.0</span> km/h</div>
+        <div class="quad-col"><span class="stat-lbl" title="Velocidad media de todo el viaje">V. MEDIA</span><span id="stat-avgspd" class="stat-val">0.0</span> km/h</div>
+        <div class="quad-col"><span class="stat-lbl" title="Tiempo transcurrido desde el inicio del viaje">TIEMPO TRANSC.</span><span id="stat-time" class="stat-val">00:00</span></div>
+      </div>
+    </div>
+  </div>
 
-      <!-- MOTOR -->
+</div>
+
+<div class="tab-page" id="page-ajustes">
+
+  <div class="panel-title" style="margin-bottom:2px;">&#127917; Control Manual <span id="joy-mode-badge" style="font-size:.68rem;color:var(--dim);">(solo en IDLE)</span></div>
+
+  <!-- CEBOS (arriba, fuera de zona de pulgares) -->
+  <div class="aj-top-row">
+    <button class="btn-cebo cargado" id="btn-cebo1" onclick="toggleCebo(1)">&#9679; CEBO 1<br><span style="font-size:.65rem" id="cebo1-st">CARGADO</span></button>
+    <button class="btn-cebo cargado" id="btn-cebo2" onclick="toggleCebo(2)">&#9679; CEBO 2<br><span style="font-size:.65rem" id="cebo2-st">CARGADO</span></button>
+  </div>
+
+  <!-- MOTOR + TRIM + STOP (zona intermedia) -->
+  <div class="aj-mid-row">
+    <div class="aj-mid-col">
       <div class="ctrl-lbl-row">
         <span class="ctrl-lbl">MOTOR</span>
         <span class="ctrl-val" id="motor-ctrl-val" style="color:#00ff88;">0%</span>
@@ -195,46 +292,6 @@ canvas{width:100%;display:block;border-radius:4px;background:var(--map-bg);}
         </div>
       </div>
 
-      <!-- TIMON -->
-      <div class="ctrl-lbl-row">
-        <span class="ctrl-lbl">
-          TIM&#211;N
-          <span id="ref-badge" class="ref-badge ref-nok">SIN REF</span>
-        </span>
-        <span style="display:flex;align-items:center;gap:8px;">
-          <label style="font-size:.7rem;color:var(--dim);display:flex;align-items:center;gap:4px;cursor:pointer;">
-            <input type="checkbox" id="chk-invert-timon" onchange="toggleInvert(this.checked)" style="accent-color:var(--accent3);width:14px;height:14px;">
-            INVERTIR
-          </label>
-          <span class="ctrl-val" id="timon-ctrl-val" style="color:var(--accent);">--&#176;</span>
-        </span>
-      </div>
-
-      <!-- Botones timon: SIMPLE, sin acumulacion -->
-      <div class="timon-btn-wrap">
-        <button class="timon-btn" id="timon-btn-izq"
-          ontouchstart="timonPress(-1);event.preventDefault()"
-          ontouchend="timonRelease();event.preventDefault()"
-          onmousedown="timonPress(-1)"
-          onmouseup="timonRelease()"
-          onmouseleave="timonRelease()">&#9664;</button>
-
-        <div class="timon-center-display">
-          <div style="font-size:.6rem;color:var(--dim);letter-spacing:.08em;">POSICION</div>
-          <div style="font-size:1rem;font-weight:700;color:var(--accent);" id="timon-pos-val">--&#176;</div>
-          <!-- CTR: centra fisicamente Y fija referencia -->
-          <button onclick="centerTimon()" style="background:transparent;border:1px solid var(--accent2);border-radius:3px;color:var(--accent2);font-family:inherit;font-size:.6rem;padding:2px 7px;cursor:pointer;margin-top:4px;">&#8226; CTR</button>
-        </div>
-
-        <button class="timon-btn" id="timon-btn-der"
-          ontouchstart="timonPress(1);event.preventDefault()"
-          ontouchend="timonRelease();event.preventDefault()"
-          onmousedown="timonPress(1)"
-          onmouseup="timonRelease()"
-          onmouseleave="timonRelease()">&#9654;</button>
-      </div>
-
-      <!-- TRIM -->
       <div class="ctrl-lbl-row">
         <span class="ctrl-lbl">&#9668; TRIM &#9658;</span>
         <span class="ctrl-val" id="trim-ctrl-val" style="color:var(--accent3);">0.0&#176;</span>
@@ -248,91 +305,122 @@ canvas{width:100%;display:block;border-radius:4px;background:var(--map-bg);}
       <div style="display:flex;justify-content:flex-end;margin-top:3px;">
         <button onclick="resetTrim()" style="background:transparent;border:1px solid var(--border);border-radius:4px;color:var(--dim);font-family:inherit;font-size:.7rem;padding:3px 10px;cursor:pointer;">&#8635; CENTRAR TRIM</button>
       </div>
+    </div>
 
-      <button class="ctrl-stop" onclick="joyStop()">&#9632; STOP MOTOR</button>
-
-      <!-- CEBOS -->
-      <div class="cebo-row">
-        <button class="btn-cebo cargado" id="btn-cebo1" onclick="toggleCebo(1)">&#9679; CEBO 1<br><span style="font-size:.65rem" id="cebo1-st">CARGADO</span></button>
-        <button class="btn-cebo cargado" id="btn-cebo2" onclick="toggleCebo(2)">&#9679; CEBO 2<br><span style="font-size:.65rem" id="cebo2-st">CARGADO</span></button>
-      </div>
+    <div class="aj-stop-col">
+      <button class="ctrl-stop" onclick="joyStop()">&#9632;<br>STOP<br>MOTOR</button>
     </div>
   </div>
 
-  <!-- 4. VIAJE AUTONOMO -->
-  <div class="panel" style="grid-column:1/-1;">
-    <div class="panel-title">&#128674; Viaje Aut&#243;nomo</div>
-    <div class="trip-lbl" id="trip-lbl" style="color:var(--idle);">EN ESPERA</div>
-    <div id="dist-val" style="display:none;"></div>
-    <div id="dist-u" style="display:none;"></div>
-    <div class="stat-row"><span class="stat-lbl">ETA</span><span id="eta-val">--:--</span></div>
-    <div class="stat-row" style="align-items:center;">
-      <span class="stat-lbl">VEL M&#193;X</span>
-      <div style="display:flex;align-items:center;gap:5px;">
-        <input type="range" id="thr-slider" min="0" max="100" value="50" oninput="setThrottle(this.value)" style="width:80px;accent-color:var(--accent);">
-        <span id="thr-val" style="color:var(--accent);font-weight:700;min-width:26px;">50%</span>
-      </div>
+  <!-- TIMON (abajo, zona de pulgares) -->
+  <div class="aj-timon-block">
+    <div class="aj-timon-toprow">
+      <span class="ctrl-lbl">
+        TIM&#211;N
+        <span id="ref-badge" class="ref-badge ref-nok">SIN REF</span>
+      </span>
+      <span style="display:flex;align-items:center;gap:8px;">
+        <label style="font-size:.7rem;color:var(--dim);display:flex;align-items:center;gap:4px;cursor:pointer;">
+          <input type="checkbox" id="chk-invert-timon" onchange="toggleInvert(this.checked)" style="accent-color:var(--accent3);width:14px;height:14px;">
+          INVERTIR
+        </label>
+        <span class="ctrl-val" id="timon-ctrl-val" style="color:var(--accent);">--&#176;</span>
+      </span>
     </div>
-    <div class="stat-row" style="align-items:center;">
-      <span class="stat-lbl">VEL M&#205;N</span>
-      <div style="display:flex;align-items:center;gap:5px;">
-        <input type="range" id="thrmin-slider" min="0" max="50" value="6" oninput="setThrottleMin(this.value)" style="width:80px;accent-color:var(--warn);">
-        <span id="thrmin-val" style="color:var(--warn);font-weight:700;min-width:26px;">6%</span>
-      </div>
-    </div>
-    <div class="stat-row" style="align-items:center;">
-      <span class="stat-lbl">PROXIMIDAD</span>
-      <div style="display:flex;align-items:center;gap:5px;">
-        <input type="range" id="prox-slider" min="1" max="30" value="3" oninput="setProximidad(this.value)" style="width:80px;accent-color:var(--accent2);">
-        <span id="prox-val" style="color:var(--accent2);font-weight:700;min-width:26px;">3m</span>
-      </div>
-    </div>
-    <div class="stat-row" style="align-items:center;">
-      <span class="stat-lbl">PAUSA</span>
-      <div style="display:flex;align-items:center;gap:5px;">
-        <input type="range" id="pausa-slider" min="0" max="30" value="0" oninput="setPausa(this.value)" style="width:80px;accent-color:var(--accent3);">
-        <span id="pausa-val" style="color:var(--accent3);font-weight:700;min-width:26px;">0s</span>
-      </div>
-    </div>
-    <button class="btn btn-go" id="btn-trip" onclick="startTrip()">&#9654; INICIAR VIAJE</button>
-    <button class="btn btn-stop-trip" id="btn-stop" onclick="stopTrip()" disabled>&#9632; DETENER</button>
-    <div style="margin-top:8px;border-top:1px solid var(--border);padding-top:6px;">
-      <div class="stat-row"><span class="stat-lbl">DISTANCIA</span><span id="stat-dist">0</span> m</div>
-      <div class="stat-row"><span class="stat-lbl">VEL MAX</span><span id="stat-maxspd">0.0</span> km/h</div>
-      <div class="stat-row"><span class="stat-lbl">VEL MED</span><span id="stat-avgspd">0.0</span> km/h</div>
-      <div class="stat-row" style="border-bottom:none;"><span class="stat-lbl">TIEMPO</span><span id="stat-time">00:00</span></div>
-    </div>
-  </div>
 
-  <!-- 5. MAPA -->
-  <div class="panel" style="grid-column:1/-1;">
-    <div class="panel-title">&#128506; Mapa</div>
-    <div class="map-tabs">
-      <div class="map-tab active" id="tab0" onclick="switchTab(0)"><span class="zona-name" id="zona-name-0" ondblclick="editZonaName(0)">ZONA 1</span></div>
-      <div class="map-tab" id="tab1" onclick="switchTab(1)"><span class="zona-name" id="zona-name-1" ondblclick="editZonaName(1)">ZONA 2</span></div>
-      <div class="map-tab" id="tab2" onclick="switchTab(2)"><span class="zona-name" id="zona-name-2" ondblclick="editZonaName(2)">ZONA 3</span></div>
-    </div>
-    <canvas id="map-canvas"></canvas>
-  </div>
+    <!-- Botones timon: SIMPLE, sin acumulacion -->
+    <div class="timon-btn-wrap">
+      <button class="timon-btn" id="timon-btn-izq"
+        ontouchstart="timonPress(-1);event.preventDefault()"
+        ontouchend="timonRelease();event.preventDefault()"
+        onmousedown="timonPress(-1)"
+        onmouseup="timonRelease()"
+        onmouseleave="timonRelease()">&#9664;</button>
 
-  <!-- 6. PUNTOS -->
-  <div class="panel" style="grid-column:1/-1;">
-    <div class="panel-title">&#128205; Puntos &mdash; <span id="zona-lbl" style="color:var(--accent);">ZONA 1</span></div>
-    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:7px;">
-      <div><div class="stat-lbl" style="font-size:.68rem;">&#127968; HOME</div><div class="point-coord" id="h-coord">--</div></div>
-      <div><div class="stat-lbl" style="font-size:.68rem;">&#127919; CEBO 1</div><div class="point-coord" id="c1-coord">--</div></div>
-      <div><div class="stat-lbl" style="font-size:.68rem;">&#127919; CEBO 2</div><div class="point-coord" id="c2-coord">--</div></div>
-    </div>
-    <div style="display:flex;gap:7px;">
-      <button class="btn" style="border-color:var(--accent);color:var(--accent);margin-top:0;" onclick="savePoint('home')">&#9632; Home</button>
-      <button class="btn" style="border-color:#a78bfa;color:#a78bfa;margin-top:0;" onclick="savePoint('cebo1')">&#9711; Cebo 1</button>
-      <button class="btn" style="border-color:#fb923c;color:#fb923c;margin-top:0;" onclick="savePoint('cebo2')">&#9711; Cebo 2</button>
+      <div class="timon-center-display">
+        <div style="font-size:.6rem;color:var(--dim);letter-spacing:.08em;">POSICION</div>
+        <div style="font-size:1rem;font-weight:700;color:var(--accent);" id="timon-pos-val">--&#176;</div>
+        <!-- CTR: centra fisicamente Y fija referencia -->
+        <button onclick="centerTimon()" style="background:transparent;border:1px solid var(--accent2);border-radius:3px;color:var(--accent2);font-family:inherit;font-size:.6rem;padding:2px 7px;cursor:pointer;margin-top:4px;">&#8226; CTR</button>
+      </div>
+
+      <button class="timon-btn" id="timon-btn-der"
+        ontouchstart="timonPress(1);event.preventDefault()"
+        ontouchend="timonRelease();event.preventDefault()"
+        onmousedown="timonPress(1)"
+        onmouseup="timonRelease()"
+        onmouseleave="timonRelease()">&#9654;</button>
     </div>
   </div>
 
 </div>
 
+<div class="tab-page" id="page-nav">
+<div class="nav-split">
+
+  <!-- 5. MAPA (mitad izquierda) -->
+  <div class="panel nav-map-col">
+    <div class="panel-title">&#128506; Mapa</div>
+    <canvas id="map-canvas"></canvas>
+  </div>
+
+  <!-- 6. ZONAS + PUNTOS (mitad derecha) -->
+  <div class="panel">
+    <div class="panel-title" style="margin-bottom:8px;">&#128205; Puntos</div>
+    <div class="map-tabs">
+      <div class="map-tab active" id="tab0" onclick="switchTab(0)"><span class="zona-name" id="zona-name-0" ondblclick="editZonaName(0)">ZONA 1</span></div>
+      <div class="map-tab" id="tab1" onclick="switchTab(1)"><span class="zona-name" id="zona-name-1" ondblclick="editZonaName(1)">ZONA 2</span></div>
+      <div class="map-tab" id="tab2" onclick="switchTab(2)"><span class="zona-name" id="zona-name-2" ondblclick="editZonaName(2)">ZONA 3</span></div>
+    </div>
+    <div class="nav-coords-col">
+      <div><span class="stat-lbl">Zona actual:</span> <span id="zona-lbl" style="color:var(--accent);">ZONA 1</span></div>
+      <div><span class="stat-lbl">&#127968; Home:</span> <span class="point-coord" id="h-coord">--</span></div>
+      <div><span class="stat-lbl">&#127919; Cebo1:</span> <span class="point-coord" id="c1-coord">--</span></div>
+      <div><span class="stat-lbl">&#127919; Cebo2:</span> <span class="point-coord" id="c2-coord">--</span></div>
+    </div>
+    <div class="nav-btn-row">
+      <button class="btn" style="border-color:var(--accent);color:var(--accent);" onclick="savePoint('home')">&#9632; Home</button>
+      <button class="btn" style="border-color:#a78bfa;color:#a78bfa;" onclick="savePoint('cebo1')">&#9711; Cebo 1</button>
+      <button class="btn" style="border-color:#fb923c;color:#fb923c;" onclick="savePoint('cebo2')">&#9711; Cebo 2</button>
+    </div>
+  </div>
+
+</div>
+</div>
+
 <script>
+// ===== PESTA&#209;AS PRINCIPALES =====
+function switchMainTab(name){
+  ['monitor','nav','ajustes'].forEach(n=>{
+    document.getElementById('page-'+n).classList.toggle('active',n===name);
+    document.getElementById('mtab-'+n).classList.toggle('active',n===name);
+  });
+  localStorage.setItem('mainTab',name);
+  if(name==='nav')resize();
+}
+(function(){const t=localStorage.getItem('mainTab');if(t)switchMainTab(t);})();
+
+// ===== SWIPE ENTRE PESTA&#209;AS (Android/t&#225;ctil) =====
+(function(){
+  const ORDEN=['monitor','nav','ajustes'];
+  let sx=0,sy=0,st=0;
+  document.body.addEventListener('touchstart',e=>{
+    if(e.target.closest('.ctrl-track,.timon-btn,#map-canvas,input,select,textarea'))return;
+    const t=e.touches[0];sx=t.clientX;sy=t.clientY;st=Date.now();
+  },{passive:true});
+  document.body.addEventListener('touchend',e=>{
+    if(e.target.closest('.ctrl-track,.timon-btn,#map-canvas,input,select,textarea'))return;
+    const t=e.changedTouches[0];
+    const dx=t.clientX-sx,dy=t.clientY-sy,dt=Date.now()-st;
+    if(Math.abs(dx)>60&&Math.abs(dy)<50&&dt<600){
+      const actual=ORDEN.find(n=>document.getElementById('mtab-'+n).classList.contains('active'));
+      let i=ORDEN.indexOf(actual);
+      i=dx<0?Math.min(i+1,ORDEN.length-1):Math.max(i-1,0);
+      switchMainTab(ORDEN[i]);
+    }
+  },{passive:true});
+})();
+
 const canvas=document.getElementById('map-canvas');
 const ctx=canvas.getContext('2d');
 let mapTab=0;
@@ -603,7 +691,7 @@ const trimCtrl=(function(){
 window.resetTrim=function(){trimCtrl.set(0);fetch('/trim?v=0');};
 
 // ===== ESTADOS VIAJE =====
-const scol={IDLE:'var(--idle)',GOING_CEBO1:'var(--going)',GOING_CEBO2:'var(--going)',RETURNING:'var(--ret)',ARRIVED:'var(--warn)'};
+const scol={IDLE:'var(--red)',GOING_CEBO1:'var(--green)',GOING_CEBO2:'var(--green)',RETURNING:'var(--green)',ARRIVED:'var(--warn)'};
 const slbl={IDLE:'EN ESPERA',GOING_CEBO1:'\u2191 HACIA CEBO 1',GOING_CEBO2:'\u2191 HACIA CEBO 2',RETURNING:'\u2193 REGRESANDO',ARRIVED:'\u2713 LLEGADO'};
 function fmt(s){return String(Math.floor(s/60)).padStart(2,'0')+':'+String(s%60).padStart(2,'0');}
 function fmtETA(s){return(!s||s>86400)?'--:--':fmt(Math.round(s));}
@@ -652,6 +740,9 @@ function poll(){
     }
 
     const sl=document.getElementById('trip-lbl');sl.textContent=slbl[d.navState]||d.navState;sl.style.color=scol[d.navState]||'var(--idle)';
+    sl.classList.remove('blink-idle','blink-going');
+    if(d.navState==='IDLE')sl.classList.add('blink-idle');
+    else if(d.navState!=='ARRIVED')sl.classList.add('blink-going');
     const dv=document.getElementById('dist-val'),du=document.getElementById('dist-u');
     const inTrip=(d.navState!=='IDLE'&&d.navState!=='ARRIVED');
     if(inTrip){dv.style.display='block';du.style.display='block';const m=d.distRemaining;dv.textContent=m>=1000?(m/1000).toFixed(2):Math.round(m);du.textContent=m>=1000?'KM RESTANTES':'METROS RESTANTES';}
@@ -950,7 +1041,7 @@ void handleStartCalib() { ComandoPlaya cmd={}; cmd.tipo=CMD_CALIB_GY273; EnviarC
 void handleTrip()       { server.send(200,"application/json","null"); }
 
 void SetupServidorWeb() {
-    dns.start(53, "*", WiFi.softAPIP());
+    //dns.start(53, "*", WiFi.softAPIP());//CAPTIVE PORTAL
 
     server.on("/",            handleRoot);
     server.on("/data",        handleData);
@@ -970,20 +1061,20 @@ void SetupServidorWeb() {
     server.on("/pausa",       handlePausa);
     server.on("/startCalib",  handleStartCalib);
 
-    server.on("/generate_204",              handleCaptive);
-    server.on("/gen_204",                   handleCaptive);
-    server.on("/hotspot-detect.html",       handleCaptive);
-    server.on("/library/test/success.html", handleCaptive);
-    server.on("/ncsi.txt",                  handleCaptive);
-    server.on("/connecttest.txt",           handleCaptive);
-    server.on("/redirect",                  handleCaptive);
-    server.onNotFound(handleCaptive);
+    //server.on("/generate_204",              handleCaptive);//CAPTIVE PORTAL
+    //server.on("/gen_204",                   handleCaptive);//CAPTIVE PORTAL
+    //server.on("/hotspot-detect.html",       handleCaptive);//CAPTIVE PORTAL
+    //server.on("/library/test/success.html", handleCaptive);//CAPTIVE PORTAL
+    //server.on("/ncsi.txt",                  handleCaptive);//CAPTIVE PORTAL
+    //server.on("/connecttest.txt",           handleCaptive);//CAPTIVE PORTAL
+    //server.on("/redirect",                  handleCaptive);//CAPTIVE PORTAL
+    //server.onNotFound(handleCaptive);//CAPTIVE PORTAL
 
     server.begin();
     Serial.println("Server OK");
 }
 
 void LoopServidorWeb() {
-    dns.processNextRequest();
+    //dns.processNextRequest(); //CAPTIVE PORTAL
     server.handleClient();
 }

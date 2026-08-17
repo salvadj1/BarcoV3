@@ -13,6 +13,9 @@ Timer timer_lectura_MPU6050;
 Timer timer_log_MPU6050;
 Timer timer_log_HW040Encoder;
 
+Timer timer_lectura_Voltaje;
+Timer timer_lectura_LucesCOB;
+
 Timer timer_telemetria;
 
 void SetupUtilidades() {

@@ -11,7 +11,7 @@
 
 #include <Arduino.h>
 
-// Direccion I2C - cambiar a 0x1D si SDO esta a GND
+// Direccion I2C -  0x53 ----- cambiar a 0x1D si SDO esta a GND
 #define ADXL345_ADDR  0x53
 
 // Ejes remapeados segun montaje fisico:

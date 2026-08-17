@@ -1,5 +1,7 @@
 #include "AS5600_Magnetic_Sensor.h"
 #include "TB6612FNG.h"
+#include "VoltajeSensor.h"
+#include "LucesCOB.h"
 
 #include "Utilidades.h"
 #include "GPS_Neo_6M.h"
@@ -20,6 +22,10 @@
 #define GY273_INTERVAL 50        // 20 Hz
 #define ADXL_INTERVAL 20         // 50 Hz
 #define TIMON_INTERVAL 20        // 50 Hz
+#define VOLTAJE_INTERVAL  500   // 2 Hz
+// LucesCOB se llama sin timer (como LoopADXL345 en su versión interna)
+// o con intervalo muy corto si prefieres controlarlo:
+#define COB_INTERVAL      20    // 50 Hz - necesario para efectos suaves
 
 void setup() {
   SetupUtilidades();
@@ -45,6 +51,10 @@ void setup() {
   setupTB6612FNG();
   setupHW040Encoder();
 
+  SetupVoltajeSensor();
+SetupLucesCOB();
+
+
   SetupESPNowBarco();
 
   Serial.println("BARCO listo");
@@ -66,7 +76,7 @@ void loop() {
   }
 
   // GY273 a 20 Hz
-  if (timer_lectura_GY273.listo(GY273_INTERVAL)) {
+ if (timer_lectura_GY273.listo(GY273_INTERVAL)) {
     LoopGY273();
   }
 
@@ -74,6 +84,13 @@ void loop() {
   if (timer_procesarTimon.listo(TIMON_INTERVAL)) {
     updateTimon();
   }
+
+  if (timer_lectura_Voltaje.listo(VOLTAJE_INTERVAL)) {
+    LoopVoltajeSensor();
+}
+if (timer_lectura_LucesCOB.listo(COB_INTERVAL)) {
+    LoopLucesCOB();
+}
 
   // Telemetria a 5 Hz
   if (timer_telemetria.listo(TELEMETRIA_INTERVAL)) {
