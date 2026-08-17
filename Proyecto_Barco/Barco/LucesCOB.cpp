@@ -3,6 +3,7 @@
 // Todos los efectos son NO BLOQUEANTES
 
 #include "LucesCOB.h"
+#include <math.h>   // sinf(), PI (definido en Arduino.h, pero por claridad)
 
 // ─── ESTADO EXPORTADO ────────────────────────────────
 ModoCOB cobModo[2]   = { COB_APAGADO, COB_APAGADO };
@@ -14,6 +15,14 @@ static uint8_t  _pin[2]      = { COB_PIN_BABOR,  COB_PIN_ESTRIBOR  };
 static uint16_t _periodo[2]  = { 500, 500 };   // ms ciclo completo
 static uint32_t _tUltimo[2]  = { 0, 0 };       // millis último cambio
 static bool     _estadoOn[2] = { false, false };
+
+// ─── ESTADO INTERNO PERSECUCION (compartido entre los 2 canales) ─────
+static uint8_t  _chasePos     = 0;   // 0=babor iluminado, 1=estribor iluminado
+static int8_t   _chaseDir     = 1;   // 1 = va hacia estribor, -1 = vuelve hacia babor
+static uint8_t  _chaseCiclos  = 0;   // ciclos ida+vuelta que quedan por hacer
+static uint16_t _chasePaso    = 150; // ms entre cada paso del barrido
+static uint32_t _chaseUltimo  = 0;
+bool cobPersecucionActiva = false;
 
 // ─── HELPERS ─────────────────────────────────────────
 static void escribir(uint8_t i, uint8_t valor) {
@@ -30,9 +39,41 @@ void SetupLucesCOB() {
     Serial.println("[COB] Luces OK - babor=GPIO13  estribor=GPIO14");
 }
 
+// ─── HELPER: PASO DE PERSECUCION (estado compartido babor/estribor) ──
+static void actualizarPersecucion(uint32_t ahora) {
+    if (ahora - _chaseUltimo < _chasePaso) return;
+    _chaseUltimo = ahora;
+
+    // Encender solo el canal que toca, apagar el otro
+    escribir(0, _chasePos == 0 ? cobBrillo[0] : 0);
+    escribir(1, _chasePos == 1 ? cobBrillo[1] : 0);
+
+    if (_chaseDir == 1) {
+        if (_chasePos == 0) { _chasePos = 1; }
+        else                { _chaseDir = -1; }
+    } else {
+        if (_chasePos == 1) { _chasePos = 0; }
+        else {
+            _chaseDir = 1;
+            if (_chaseCiclos > 0) _chaseCiclos--;
+            if (_chaseCiclos == 0) {
+                // Fin de la persecucion: dejar ambos lados fijos
+                cobPersecucionActiva = false;
+                cobFijo(COB_AMBOS, cobBrillo[0]);
+            }
+        }
+    }
+}
+
 // ─── LOOP ────────────────────────────────────────────
 void LoopLucesCOB() {
     uint32_t ahora = millis();
+
+    // La persecucion usa estado compartido entre canales: se gestiona aparte
+    if (cobModo[COB_BABOR] == COB_PERSECUCION || cobModo[COB_ESTRIBOR] == COB_PERSECUCION) {
+        actualizarPersecucion(ahora);
+        return;
+    }
 
     for (int i = 0; i < 2; i++) {
         uint32_t dt = ahora - _tUltimo[i];
@@ -79,6 +120,23 @@ void LoopLucesCOB() {
                     escribir(i, _estadoOn[i] ? cobBrillo[i] : 0);
                 }
                 break;
+
+            // Respiracion en espejo: brillo senoidal, estribor desfasado 180° respecto a babor
+            case COB_RESPIRA: {
+                float fase = (float)(dt % _periodo[i]) / (float)_periodo[i];      // 0..1
+                float ang  = fase * 2.0f * PI + (i == 1 ? PI : 0.0f);             // espejo
+                float s    = (sinf(ang) + 1.0f) * 0.5f;                          // 0..1
+                escribir(i, (uint8_t)(s * cobBrillo[i]));
+                break;
+            }
+
+            // Sirena: cuadrada alterna, estribor desfasado medio periodo respecto a babor
+            case COB_SIRENA: {
+                uint32_t offset = (i == 1) ? _periodo[i] / 2 : 0;
+                uint32_t fase   = (dt + offset) % _periodo[i];
+                escribir(i, (fase < _periodo[i] / 2) ? cobBrillo[i] : 0);
+                break;
+            }
         }
     }
 }
@@ -101,3 +159,24 @@ void cobFijo(uint8_t lado, uint8_t brillo)                             { cobSet(
 void cobParpadeo(uint8_t lado, uint16_t periodoMs, uint8_t brillo)     { cobSet(lado, COB_PARPADEO, periodoMs, brillo);        }
 void cobDestello(uint8_t lado, uint16_t periodoMs, uint8_t brillo)     { cobSet(lado, COB_DESTELLO, periodoMs, brillo);        }
 void cobAlerta(uint8_t lado)                                           { cobSet(lado, COB_ALERTA,   0,         255);           }
+
+void cobRespira(uint16_t periodoMs, uint8_t brillo) {
+    cobSet(COB_AMBOS, COB_RESPIRA, periodoMs, brillo);
+}
+
+void cobSirena(uint16_t periodoMs, uint8_t brillo) {
+    cobSet(COB_AMBOS, COB_SIRENA, periodoMs, brillo);
+}
+
+void cobPersecucion(uint8_t ciclos, uint16_t pasoMs, uint8_t brillo) {
+    cobModo[0]   = COB_PERSECUCION;
+    cobModo[1]   = COB_PERSECUCION;
+    cobBrillo[0] = brillo;
+    cobBrillo[1] = brillo;
+    _chasePos    = 0;
+    _chaseDir    = 1;
+    _chaseCiclos = ciclos;
+    _chasePaso   = pasoMs;
+    _chaseUltimo = millis();
+    cobPersecucionActiva = true;
+}

@@ -2,6 +2,7 @@
 #include "TB6612FNG.h"
 #include "VoltajeSensor.h"
 #include "LucesCOB.h"
+#include "LucesLogica.h"
 
 #include "Utilidades.h"
 #include "GPS_Neo_6M.h"
@@ -68,6 +69,8 @@ void loop() {
 
   loopHW040Encoder();
 
+  LoopESPNowBarco();  // actualiza senalPerdida (comparacion de millis, no bloquea)
+
   if (LoopGPS()) {
     LoopViajesLogica();
   }
@@ -91,7 +94,8 @@ void loop() {
     LoopVoltajeSensor();
 }
 if (timer_lectura_LucesCOB.listo(COB_INTERVAL)) {
-    LoopLucesCOB();
+    LoopLucesLogica();  // decide que patron toca segun el estado del barco
+    LoopLucesCOB();     // ejecuta el patron (PWM)
 }
 
   // Telemetria a 5 Hz

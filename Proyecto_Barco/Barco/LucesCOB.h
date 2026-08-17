@@ -32,12 +32,19 @@
 
 // ─── MODOS ───────────────────────────────────────────
 enum ModoCOB : uint8_t {
-    COB_APAGADO  = 0,
-    COB_FIJO     = 1,
-    COB_PARPADEO = 2,   // on/off cada periodoMs ms
-    COB_DESTELLO = 3,   // pulso corto cada periodoMs ms
-    COB_ALERTA   = 4    // parpadeo rápido fijo 80ms
+    COB_APAGADO     = 0,
+    COB_FIJO        = 1,
+    COB_PARPADEO    = 2,   // on/off cada periodoMs ms
+    COB_DESTELLO    = 3,   // pulso corto cada periodoMs ms
+    COB_ALERTA      = 4,   // parpadeo rápido fijo 80ms
+    COB_RESPIRA     = 5,   // ambos lados: brillo senoidal en espejo (uno sube, el otro baja)
+    COB_SIRENA      = 6,   // ambos lados: parpadeo alterno fuera de fase (tipo sirena policia)
+    COB_PERSECUCION = 7    // ambos lados: barrido babor<->estribor N ciclos y se detiene en fijo
 };
+
+// true mientras el patron de persecucion (COB_PERSECUCION) esta en marcha;
+// pasa a false automaticamente cuando termina el numero de ciclos pedido
+extern bool cobPersecucionActiva;
 
 // ─── ESTADO EXPORTADO (para telemetría/web) ──────────
 extern ModoCOB cobModo[2];     // cobModo[0]=babor  cobModo[1]=estribor
@@ -59,5 +66,14 @@ void cobFijo(uint8_t lado = COB_AMBOS, uint8_t brillo = 255);
 void cobParpadeo(uint8_t lado = COB_AMBOS, uint16_t periodoMs = 500, uint8_t brillo = 255);
 void cobDestello(uint8_t lado = COB_AMBOS, uint16_t periodoMs = 1500, uint8_t brillo = 255);
 void cobAlerta(uint8_t lado = COB_AMBOS);
+
+// Respiracion en espejo: babor y estribor siempre en COB_AMBOS (necesitan fase opuesta)
+void cobRespira(uint16_t periodoMs = 3000, uint8_t brillo = 255);
+
+// Sirena de alerta: parpadeo alterno fuera de fase entre babor y estribor
+void cobSirena(uint16_t periodoMs = 300, uint8_t brillo = 255);
+
+// Persecucion: barrido babor->estribor->babor, "ciclos" veces, luego se deja fijo
+void cobPersecucion(uint8_t ciclos = 4, uint16_t pasoMs = 150, uint8_t brillo = 255);
 
 #endif

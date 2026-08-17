@@ -6,6 +6,17 @@
 // MAC del ESP32 de la Playa - CAMBIAR POR LA MAC REAL
 uint8_t macPlaya[6] = { 0xF4, 0x65, 0x0B, 0x57, 0x0D, 0x08 };
 
+// ---------- PRIORIDAD WEB SOBRE MANDO (throttle) ----------
+// Tras un CMD_THROTTLE (slider web), durante esta ventana el mando NO puede
+// pisar la velocidad: se usa throttleMax (web) en vez de cmd.throttle (mando).
+#define WEB_THROTTLE_PRIORIDAD_MS 3000
+static unsigned long webThrottleMs = 0;
+
+// ---------- DETECCION DE PERDIDA DE SEÑAL ----------
+#define SENAL_TIMEOUT_MS 3000
+static unsigned long ultimoComandoMs = 0;
+bool senalPerdida = false;
+
 #include "GPS_Neo_6M.h"
 #include "GY273_Module.h"
 #include "Viajes_Logica.h"
@@ -21,6 +32,8 @@ void onComandoRecibido(const uint8_t* mac, const uint8_t* data, int len) {
   ComandoPlaya cmd;
   memcpy(&cmd, data, sizeof(ComandoPlaya));
 
+  ultimoComandoMs = millis();   // marca de vida: llega algo de la Playa
+
   Serial.printf("CMD recibido: len=%d tipo=%d throttle=%d rumbo=%d\n",
                 len, ((ComandoPlaya*)data)->tipo,
                 ((ComandoPlaya*)data)->throttle,
@@ -29,15 +42,20 @@ void onComandoRecibido(const uint8_t* mac, const uint8_t* data, int len) {
 
   switch (cmd.tipo) {
 
-    case CMD_JOYSTICK:
+    case CMD_JOYSTICK: {
+      // Si la web ha tocado el slider hace poco, su valor (throttleMax) prevalece
+      // sobre el throttle que manda el mando, para que el slider sea utilizable.
+      bool webPrevalece = (millis() - webThrottleMs < WEB_THROTTLE_PRIORIDAD_MS);
+      int  throttleAplicado = webPrevalece ? throttleMax : cmd.throttle;
+
       // rumbo: -1=izquierda, 0=centro, +1=derecha
       // rumbo=0 (soltar boton) se procesa SIEMPRE para garantizar vuelta al centro
       if (cmd.rumbo == 0) {
         //updateJoyTimestamp();
         joySteer = 0;
         modoManual = true;
-        setMotorPct(cmd.throttle);
-        motorRunning = (cmd.throttle > 0);
+        setMotorPct(throttleAplicado);
+        motorRunning = (throttleAplicado > 0);
         break;
       }
       if (navState == IDLE || navState == ARRIVED) {
@@ -48,10 +66,11 @@ void onComandoRecibido(const uint8_t* mac, const uint8_t* data, int len) {
         //updateJoyTimestamp();
         joySteer = cmd.rumbo;
         modoManual = true;
-        setMotorPct(cmd.throttle);
-        motorRunning = (cmd.throttle > 0);
+        setMotorPct(throttleAplicado);
+        motorRunning = (throttleAplicado > 0);
       }
       break;
+    }
 
     case CMD_CENTER_TIMON:
       ResetearTimon();
@@ -107,6 +126,7 @@ void onComandoRecibido(const uint8_t* mac, const uint8_t* data, int len) {
 
     case CMD_THROTTLE:
       throttleMax = constrain(cmd.nuevoThrottle, 0, 100);
+      webThrottleMs = millis();   // la web toma prioridad sobre el mando durante unos segundos
       if (motorRunning) setMotorPct(throttleMax);
       break;
 
@@ -162,6 +182,14 @@ void SetupESPNowBarco() {
   Serial.println("ESP-NOW BARCO OK");
   Serial.print("MAC Barco: ");
   Serial.println(WiFi.macAddress());
+
+  ultimoComandoMs = millis();   // evita falsa alarma de señal perdida antes del primer paquete
+}
+
+// ---------- LOOP: DETECCION DE PERDIDA DE SEÑAL ----------
+// Llamar en cada vuelta de loop(); es solo una comparacion de millis(), no bloquea.
+void LoopESPNowBarco() {
+  senalPerdida = (millis() - ultimoComandoMs) > SENAL_TIMEOUT_MS;
 }
 
 // ---------- ENVIAR TELEMETRIA ----------

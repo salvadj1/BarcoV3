@@ -12,5 +12,9 @@ extern uint8_t macPlaya[6];
 
 void SetupESPNowBarco();
 void EnviarTelemetria();
+void LoopESPNowBarco();   // llamar cada iteracion de loop() para detectar perdida de señal
+
+// true si no llega ningun comando de la Playa desde hace SENAL_TIMEOUT_MS
+extern bool senalPerdida;
 
 #endif

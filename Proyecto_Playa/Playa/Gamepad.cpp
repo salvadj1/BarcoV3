@@ -50,7 +50,11 @@ void UpdateGamepad() {
     cebo1 = (digitalRead(pinCebo1) == LOW);
 
     // ---------- ENVIAR SOLO LO QUE CAMBIO (mismo formato que usan los handlers web) ----------
-    if (throttle != lastThrottle || rumbo != lastRumbo) {
+    // Banda muerta en el throttle: el ADC oscila +-1/2 por ruido en reposo,
+    // y sin banda muerta eso generaria envios constantes que pisarian el
+    // throttle fijado desde la web aunque nadie toque el gatillo del mando.
+    const int THROTTLE_DEADBAND = 2;
+    if (abs(throttle - lastThrottle) > THROTTLE_DEADBAND || rumbo != lastRumbo) {
         ComandoPlaya cmd = {};
         cmd.tipo     = CMD_JOYSTICK;
         cmd.rumbo    = rumbo;
